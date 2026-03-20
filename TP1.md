@@ -6,6 +6,19 @@ Los benchmarks pueden clasificarse según el componente que evalúan (CPU, GPU, 
 
 ## 2. Benchmarks utilizados
 
+Los benchmarks más útiles son aquellos que representan de forma más realista las tareas que cada usuario realiza diariamente.
+
+En este caso, los benchmarks más útiles son:
+
+- 3DMark, para evaluar el rendimiento en videojuegos y tareas gráficas.
+- HandBrake, para medir el rendimiento en procesamiento de video.
+- Cinebench R23, para evaluar el rendimiento general del procesador.
+- y-cruncher y C-Ray, para medir cálculos intensivos como los utilizados en simulaciones.
+- WebXPRT 4, para evaluar el rendimiento en aplicaciones web.
+
+Estos benchmarks permiten obtener una visión completa del rendimiento del sistema en distintos escenarios.
+
+
 | Tarea | Benchmark |
 |------|----------|
 | Ver videos | HandBrake |
@@ -14,13 +27,3 @@ Los benchmarks pueden clasificarse según el componente que evalúan (CPU, GPU, 
 | Uso general de la PC | CPU-Z |
 | Navegación web | ARES-6 |
 
-
-Para videojuegos se utiliza 3DMark, ya que simula cargas gráficas similares a juegos reales.
-
-Para la reproducción y procesamiento de video se utiliza HandBrake, que mide el rendimiento al codificar video.
-
-Para simulaciones de circuitos se utilizan C-Ray, debido a que requieren cálculos matemáticos intensivos y uso de múltiples núcleos.
-
-Para uso general se utiliza CPU-Z, que permite una comparación simple del rendimiento del procesador.
-
-Para navegación web se utilizan ARES-6, que evalúan el rendimiento en aplicaciones web modernas.
