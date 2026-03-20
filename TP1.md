@@ -14,7 +14,6 @@ Los benchmarks pueden clasificarse según el componente que evalúan (CPU, GPU, 
 | Uso general de la PC | CPU-Z |
 | Navegación web | ARES-6 |
 
-### Justificación
 
 Para videojuegos se utiliza 3DMark, ya que simula cargas gráficas similares a juegos reales.
 
