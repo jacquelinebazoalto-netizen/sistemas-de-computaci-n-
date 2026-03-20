@@ -1,1 +1,1 @@
-# sistemas-de-computaci-n-
+#actividad practica N1
