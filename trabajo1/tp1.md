@@ -69,3 +69,8 @@ Por lo tanto el procesaor Intel Core i5-13600K es más eficiente porque tarda me
 
 
 
+
+## GNU GCC Profiling
+Las herramientas para analizar el tiempo de ejecución del programa/uso de memoria se llaman generadores de perfiles.Los generadores de perfiles de código a menudo se usan para analizar no solo cuánto tiempo tarda en ejecutarse un programa (podemos obtenerlo de herramientas a nivel de shell como /usr/bin/time), sino también cuánto tiempo tarda en ejecutarse cada función o método (tiempo de CPU). Dos técnicas principales utilizadas por los perfiladores: inyección de código, muestreo.
+
+
