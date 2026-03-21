@@ -30,7 +30,22 @@ Ejemplos:
 ---
 Aplicaciones reales usadas tal cual en producción. Se mide el tiempo o rendimiento en tareas reales.
 Ejemplos:
-- **Compilación de código GCC**.
+- **Compilación de código GCC**: Se puede medir cuánto tarda en completar una tarea real y comparar ese tiempo entre sistemas.
 - **FPS en juegos**.
 - **Handbreak**: El encoder de HandBreak viene con varias opciones para que se pueda usar fácilmente el benchmark para CPU que se necesite. Mide el tiempo necesario para codificar un video y luego usas eso como tu baseline de comparación.
 
+## Benchmark que podríamos utilizar en nuestro día a día según las tareas que realizamos en nuestra PC:
+
+| Actividad                           |Benchmark           |
+| -------------------------------------------------- | ---------------------------------- |
+| Compilar código C/C++          | Compilación con GCC                |
+| Usar IDEs (JetBrains, VS Code) + multitarea        | Cinebench R23 (multi-core)         |
+| Procesamiento intensivo de CPU                     | HandBrake                          |
+| Renderizado / cargas paralelas                     | Corona Renderer                    |
+| Uso de terminal y scripts                | y-cruncher                         |
+| Uso del navegador (muchas pestañas, apps web)      | WebXPRT 4                          |
+| Lectura/escritura de archivos (proyectos, SO)      | CrystalDiskMark                    |
+| Gaming en Windows                                  | FPS en juegos  |
+| Evaluar GPU + CPU en juegos                        | 3DMark                             |
+| Verificar estabilidad del sistema                  | y-cruncher                         |
+| Evaluar rendimiento general del CPU       | CPU-Z                              |
