@@ -49,3 +49,11 @@ Ejemplos:
 | Evaluar GPU + CPU en juegos                        | 3DMark                             |
 | Verificar estabilidad del sistema                  | y-cruncher                         |
 | Evaluar rendimiento general del CPU       | CPU-Z                              |
+
+
+## Comparación compilación del Kernel de Linux con los procesadores Intel i5-13600K y AMD Ryzen 9 5900X 12 Core
+
+Para realizar esta comparación utilizamos la página [Open Benchmarking](https://openbenchmarking.org/test/pts/build-linux-kernel&eval=cb81925dba817594f846f03a3bc29a81ef048649#metrics). En específico se hará la comparación para la compilación de la versión 1.16.x del Kernel de Linux, con la *build* `allmodconfig`, esto quiere decir que se compila el kernel junto con casi todos sus drivers, por lo tanto es mucho más tiempo de compilación que si se tratara de la build `defconfig`. Hace mucho más uso del CPU estresando el sistema.
+
+
+
