@@ -51,9 +51,21 @@ Ejemplos:
 | Evaluar rendimiento general del CPU       | CPU-Z                              |
 
 
-## Comparación compilación del Kernel de Linux con los procesadores Intel i5-13600K y AMD Ryzen 9 5900X 12 Core
+## Comparación compilación del Kernel de Linux con los procesadores Intel Core i5-13600K y AMD Ryzen 9 5900X 12 Core
 
 Para realizar esta comparación utilizamos la página [Open Benchmarking](https://openbenchmarking.org/test/pts/build-linux-kernel&eval=cb81925dba817594f846f03a3bc29a81ef048649#metrics). En específico se hará la comparación para la compilación de la versión 1.16.x del Kernel de Linux, con la *build* `allmodconfig`, esto quiere decir que se compila el kernel junto con casi todos sus drivers, por lo tanto es mucho más tiempo de compilación que si se tratara de la build `defconfig`. Hace mucho más uso del CPU estresando el sistema.
+
+### AMD Ryzen 9 5900X 12 Core
+![AMD Ryzen 9 5900X 12 Core Benchmark](/trabajo1/imagenes/amd-ryzen-9-5900x.jpeg)
+La última columna indica el tiempo de compilación promedio: **1309 +/- 37 segundos**.
+
+vs.
+
+### Intel Core i5-13600K
+![Intel Core i5-13600K](/trabajo1/imagenes/intel-i5-13600k.jpeg)
+La última columna indica **1094 segundos**.
+
+Por lo tanto el procesaor Intel Core i5-13600K es más eficiente porque tarda menos tiempo en compilar el Kernel de Linux.
 
 
 
