@@ -1,4 +1,7 @@
 #actividad practica N1
+
+
+
 #Benchmark  usados por jacky
 | Tarea                              | Benchmark Más Representativo | Motivo                                                                 |
 |-----------------------------------|-----------------------------|------------------------------------------------------------------------|
