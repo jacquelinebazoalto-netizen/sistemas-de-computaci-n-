@@ -73,4 +73,70 @@ Por lo tanto el procesaor Intel Core i5-13600K es más eficiente porque tarda me
 ## GNU GCC Profiling
 Las herramientas para analizar el tiempo de ejecución del programa/uso de memoria se llaman generadores de perfiles.Los generadores de perfiles de código a menudo se usan para analizar no solo cuánto tiempo tarda en ejecutarse un programa (podemos obtenerlo de herramientas a nivel de shell como /usr/bin/time), sino también cuánto tiempo tarda en ejecutarse cada función o método (tiempo de CPU). Dos técnicas principales utilizadas por los perfiladores: inyección de código, muestreo.
 
+Vamos a utilizar la herramienta `gprof` para analizar el tiempo de ejecución. Para esto necesitamos:
+- Habilitar "profiling" durante la compilación
+- Ejecutar el código del programa para producir los datos de perfil
+- Ejecutar la herramienta gprof en el archivo de datos de generación de perfiles generado en el paso anterior
 
+Este último paso genera un archivo de análisis legible por humanos. Este archivo contiene un **perfil plano** y **gráfico de llamadas**. 
+- El perfil plano brinda una descripción general de la información de tiempo de las funciones, como el consumo de tiempo para la ejecución de una función en particular, cuántas veces se llamó. etc.
+- El gráfico de llamadas se enfoca en cada función como las funciones a través de las cuales un determinado se llamó a la función, qué funciones se llamaron desde dentro de esta función en particular, etc. De esta manera, también se puede tener una idea del tiempo de ejecución empleado en las subrutinas.
+
+Los códigos de [test_gprof.c](/trabajo1/profiling/test_gprof.c) y [test_gprof_new.c](/trabajo1/profiling/test_gprof_new.c) se utilizarán para producir los datos de perfil.
+
+**Desarrollo**:
+![desarrollo-profiling](/trabajo1/imagenes/Captura%20desde%202026-03-21%2019-08-38.png)
+
+*Ejecución de la herramienta gprof*:
+![ejecución-gprof](/trabajo1/imagenes/Captura%20desde%202026-03-21%2019-34-54.png)
+
+**Resultados**:
+![resultados-gprof](/trabajo1/imagenes/Captura%20desde%202026-03-21%2019-46-23.png)
+
+*Interpretación*:
+
+- El archivo .txt nos dice inicialmente que la base de tiempos es de 0.01 [s].
+- En la primera columna se especifica el porcentaje que representa cada función del programa total:
+  -  La función `func1` es el 55,41% del programa.
+  -  La función `func2` es el 37,73% del programa.
+  -  Mientras que `new_func1` y `main` son un 3,43% del programa cada una, o 6,87% en conjunto.
+-  En la segunda columna se expresa el tiempo acumulado por cada función. **Se tiene un tiempo total de 13,12 [s]**.
+-  En la tercera columna podemos ver el tiempo individual de cada función.
+-  La cuarta y quinta columna expresan el tiempo promedio de ejecución por llamada a la función y el tiempo sobre el total de llamadas a funciones.
+
+Interpretación del **call graph** (*gráfico de llamadas*):
+![call-graph](/trabajo1/imagenes/Captura%20desde%202026-03-21%2019-59-34.png)
+
+> La "*granularity*" es el nivel de detalle con que se registran y analizan las llamadas a funciones y el tiempo de ejecución de cada función en un programa durante el profiling.
+
+Esta tabla describe el árbol de llamadas del programa y fue ordenada por la cantidad total de tiempo empleado en cada función y sus hijos.
+
+- La columna de `index` enumera a la función actual. Las líneas que se encuentren por arriba enumeran las funciones que llamaron a esta funcón, y las líneas debajo enumeran las funciones a las que llama.
+- La columna `time` es el porcentaje de tiempo total que se dedicó en la función y sus hijos:
+  - La función `main` tomó el 100% del tiempo de ejecución en ejecutarse ella misma y llamar a `func1` y `func2`.
+  - La función `func1` tomó un 58,8% del tiempo de ejecución en ejecutarse ella misma y llamar a la función `new_func1`.
+  - La función `func2` tomó un 37,2% del tiempo de ejecución en ejecutarse.
+  - La función `new_func1` tom+o un 3,4% del tiempo de ejecución en ejecutarse.
+- La columna `self` es la cantidad total de tiempo empleado en cada función.
+- La columna `children` indica la cantidad de tiempo propagado en esta función por sus hijos.
+- La columna `called` es el número de veces que se llamó a la función.
+
+### Utilizando gprof con flags
+- Usando la flag `-a` podemos evitar la impresión de las funciones estáticas como el caso de la función `func2`:
+![gprof-flag](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-10-27.png)
+![gprof-flag-analisys](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-11-17.png)
+![gprof-call-graph](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-13-10.png)
+
+**Se puede ver que no hay información relacionada con `func2`**
+
+- Usando la flag `-b` se eliminan los textos detallados
+![gprof-sintexto](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-18-21.png)
+
+- Usando el flag `-p` se imprime solo el perfil plano
+![gprof-perfilplano](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-21-15.png)
+
+- Podemos agregar la flag `-pfunc1` para reducir el análisis del programa a una sola función en específico
+![gprof-fuincionesespecificas](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-27-38.png)
+
+### Generación de gráficos
+Necesitamos instalar la herramienta `gprof2dot`:
