@@ -1,5 +1,5 @@
 #actividad practica N1
-#Bennfdjm  usados por jacky
+#Benchmark  usados por jacky
 | Tarea                              | Benchmark Más Representativo | Motivo                                                                 |
 |-----------------------------------|-----------------------------|------------------------------------------------------------------------|
 | Simulación de circuitos (Multisim) | Whetstone                   | Evalúa cálculos de punto flotante, clave en simulaciones eléctricas   |
