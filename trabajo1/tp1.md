@@ -139,4 +139,24 @@ Esta tabla describe el árbol de llamadas del programa y fue ordenada por la can
 ![gprof-fuincionesespecificas](/trabajo1/imagenes/Captura%20desde%202026-03-21%2021-27-38.png)
 
 ### Generación de gráficos
-Necesitamos instalar la herramienta `gprof2dot`:
+Necesitamos instalar la herramienta `gprof2dot`. Y se realiza el siguiente procedimiento:
+![generacion-grafico](/trabajo1/imagenes/Captura%20desde%202026-03-21%2023-43-39.png)
+
+Esta herramienta genera el siguiente gráfico:
+
+![grapviz-grafico](/trabajo1/profiling/grafico.png)
+
+### Uso de la herramiento perf para profiling
+Perf utiliza perfiles estadísticos, donde sondea el programa y ve qué función está funcionando. Esto es menos preciso, pero tiene menos impacto en el rendimiento que algo como Callgrind, que rastrea cada llamada. Los resultados siguen siendo razonablemente precisos, e incluso con menos muestras, mostrará qué funciones están tomando mucho tiempo, incluso si pierde funciones que son muy rápidas.
+
+**Procemiento**:
+![perf1](/trabajo1/imagenes/Captura%20desde%202026-03-22%2000-03-19.png)
+![perf2](/trabajo1/imagenes/Captura%20desde%202026-03-22%2000-04-10.png)
+![perf1](/trabajo1/imagenes/Captura%20desde%202026-03-22%2000-04-59.png)
+
+*Interpretación*:
+- `func1` consume más de la mitad del tiempo total, es decir, tiene un overhead del 55,45%.
+- `func2` tiene un overhead del 37,42%.
+- `new_func1` tiene un overhead de 3,45%, es irrelevante.
+- `main` es despreciable.
+- Todo lo que dice `[unknown]` es código del kernel, interrupciones, scheduler, syscalls. Aparecen porque `perf` mide todo lo que ejecuta el CPU, no solo el programa. Tienen ~0% por lo que son despreciables.
