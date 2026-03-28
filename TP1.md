@@ -64,6 +64,6 @@ Intel 428 dolares
 
 Ryzen 7950 802 dolares 
 
-En términos de costo, el AMD Ryzen 9 5900HX 12-Core que ofrece un muy buen rendimiento a un precio más accesible. Además, también presenta un consumo energético menor que el Ryzen 9 7950X, lo que lo hace más conveniente en relación rendimiento/consumo. Por otro lado, aunque el Ryzen 9 7950X es el más potente, su mayor costo y consumo lo hacen menos eficiente en este aspecto.
+En términos de costo, el AMD Ryzen 9 5900HX 12-Core que ofrece un buen rendimiento a un precio más accesible. Además, también presenta un consumo energético menor que el Ryzen 9 7950X, lo que lo hace más conveniente en relación rendimiento/consumo. Por otro lado, aunque el Ryzen 9 7950X es el más potente, su mayor costo y consumo lo hacen menos eficiente en este aspecto.
 
 
