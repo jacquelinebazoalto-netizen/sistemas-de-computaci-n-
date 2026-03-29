@@ -160,3 +160,53 @@ Perf utiliza perfiles estadísticos, donde sondea el programa y ve qué función
 - `new_func1` tiene un overhead de 3,45%, es irrelevante.
 - `main` es despreciable.
 - Todo lo que dice `[unknown]` es código del kernel, interrupciones, scheduler, syscalls. Aparecen porque `perf` mide todo lo que ejecuta el CPU, no solo el programa. Tienen ~0% por lo que son despreciables.
+
+
+# Modificando la frecuencia de un ESP32
+
+El ESP32 tiene típicamente estas frecuencias:
+- 80 MHz
+- 160 MHz
+- 240 MHz (máxima)
+
+Y se pueden cambiar en tiempo de ejecución.
+
+La idea es hacer dos test:
+1. Suma de enteros (int)
+2. Suma de floats
+
+Y medir el tiempo en dos situaciones. Primero con una frecuencia de 80 MHz, y luego con el doble de frecuencia, es decir con 160 MHz, y comparar como cambian los tiempos de ejecución.
+
+Se puede ver el código que se va a cargar a la ESP32 [acá](/trabajo1/benchmark_esp32/esp32_benchmarkV1.ino).
+
+Se utilizan variables `volatile` para evitar que el compilador potimice los bucles y los elimine, y `esp_timer_get_time()` para medir con precisión de microsegundos, e incluso mide cuando se cambia la frecuencia en la ejecución del programa.
+
+Resultados:
+
+![Resultados-benchmar-ESP32](/trabajo1/imagenes/Captura%20desde%202026-03-28%2020-26-55.png)
+
+El programa realiza un bucle for donde suma enteros, y otro bucle for donde suma números de punto flotante. Ambos bucles realizan 30 millones de iteraciones.
+
+Cuando la **frecuencia es de 80 MHz**:
+- La suma de enteros demora aproximadamente 10.996 segundos
+- La suma de flotantes demora aproximadamente 4.930 segundos
+
+Y cuando duplicamos la **frecuencia a 160 MHz** se observa que el tiempo de ejecución se redujo a la mitad aproximadamente:
+
+- La suma de enteros demora aproximadamente 5.467 segundos
+- La suma de flotantes demora aproximadamente 2.451 segundos
+
+Que al duplicar la frecuencia el tiempo se reduzca a la mitad implica:
+
+$$T \propto \frac{1}{f}$$
+
+- Más frecuencia equivale a más ciclos por segundo
+- Mismo código, por lo tanto tenemos los mismos ciclos totales
+- El resultado es menos tiempo
+
+Este resultado es el **caso ideal**. Pero en sistemas reales muchas veces NO pasa esto.
+Casos donde no se cumple:
+- Acceo a memoria: RAM o Flash no escalan con la frecuencia, se genera un cuello de botella.
+- Operaciones más complejas que generan más latencia.
+- Interrupciones y/o el sistema operativo. El ESP32 usa FreeRTOS el cual puede tener tareas en background como WiFi/Bluetooth.
+- I/O, como Serial o GPIO que no dependen del CPU.
