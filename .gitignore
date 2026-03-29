@@ -1,0 +1,7 @@
+*.out
+*.bin
+*.o
+
+trabajo1/profiling/perf.data
+trabajo1/profiling/test_gprof
+
