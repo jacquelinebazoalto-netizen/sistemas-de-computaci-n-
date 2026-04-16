@@ -28,6 +28,28 @@ def fetch_gini():
 
     return registros
 
+def enviar_a_c(registros):
+    # Se construye el texto que se le va a enviar a C por stdin
+    # Formato: una linea por medicion "año valor"
+    # se utilizara float con 6 decimales para que C lo lea fácilmente por scanf
+    lineas = []
+
+    # Lo primero sera la cantidad de registros, para que C sepa cuantas lineas va a leer
+    lineas.append(str(len(registros)))
+
+    for anio, valor in registros:
+        lineas.append(f"{anio} {valor:.6f}")
+
+    texto = "\n".join(lineas) + "\n" # se agrega un salto de linea al final para que C sepa que termino la entrada
+
+    # Se llama al programa C usando subprocess, se le pasa el texto por stdin
+    proceso = subprocess.run(
+        ["./gini_c"], # se tiene que compilar el programa en C y se tiene que llamar gini_c
+        input=texto,
+        text=True
+    )
+
 if __name__ == "__main__":
     registros = fetch_gini()
+    enviar_a_c(registros)
 
