@@ -119,11 +119,128 @@ conversión y la suma son correctas.
 
 Para compilar y ejecutar:
 ```bash
-nasm -f elf64 -o gini_asm.o gini_asm.asm
-gcc -no-pie -o gini_c main.c gini_asm.o
+nasm -f elf64 -g -F dwarf -o gini_asm.o gini_asm.asm
+gcc -g3 -O0 -no-pie -o gini_c main.c gini_asm.o
 python3 fetch_gini.py
 ```
 Al ejecutar, Python obtiene los datos de la API, los envía al proceso C, y este muestra tanto el valor GINI original como el resultado devuelto por la rutina de ensamblador:
 
 ![](/trabajo2/imagenes/resultados_py_c_asm.png)
+
+---
+
+### Depuración con GDB — Estado del stack antes, durante y después de `convertir_gini`
+
+La consigna requiere mostrar el área de memoria del stack en tres momentos de la llamada a la rutina de ensamblador. Para lograr esto se compiló con símbolos de depuración (`-g3 -O0` en gcc, `-g -F dwarf` en nasm) y se utilizó el script `gdb_session.gdb` con GDB en modo batch.
+
+```bash
+gdb -batch -x gdb_session.gdb ./gini_c
+```
+
+#### Secuencia de instrucciones relevante en `main`
+
+El compilador genera las siguientes instrucciones para la llamada:
+
+```asm
+0x40063f <main+377>:  movd   %eax, %xmm0        ; copia los bits del float a xmm0
+0x400643 <main+381>:  call   0x4006d0 <convertir_gini>  ; empuja retaddr, salta
+0x400648 <main+386>:  mov    %eax, -0x14(%rbp)   ; guarda el resultado
+```
+
+---
+
+#### PUNTO 1 — ANTES del `call`
+
+Breakpoint en `0x400643` (el `call` mismo). En este momento `xmm0` ya tiene el argumento
+float pero la dirección de retorno **no está en el stack todavía**.
+
+```
+rsp = 0x7fffffffd5c0
+rbp = 0x7fffffffd5e0
+
+xmm0 (argumento):  42.4000015  (float de precisión simple)
+
+Stack desde RSP:
+0x7fffffffd5c0:  0x0000000000000000  0x0000000000000003
+0x7fffffffd5d0:  0x0000000000405320  0x0000000300000000
+0x7fffffffd5e0:  0x00007fffffffd680  0x00007ffff7dac5b5
+0x7fffffffd5f0:  0x00007ffff7fc5000  0x00007fffffffd708
+
+Próximas instrucciones:
+=> 0x400643 <main+381>:  call   0x4006d0 <convertir_gini>
+   0x400648 <main+386>:  mov    %eax, -0x14(%rbp)
+```
+
+---
+
+#### PUNTO 2 — DURANTE: primera instrucción de `convertir_gini`
+
+Tras ejecutar el `call`, el procesador **decrementó RSP en 8** y escribió la dirección
+de retorno (`0x400648`) en la nueva cima del stack. Ahora estamos en la instrucción
+`cvtss2si` de la rutina de ensamblador.
+
+```
+rsp = 0x7fffffffd5b8   ← RSP_anterior − 8
+rbp = 0x7fffffffd5e0   (sin cambio; no hay prólogo en esta función)
+
+xmm0 (argumento intacto):  42.4000015
+
+Stack desde RSP — [RSP] es la dirección de retorno:
+0x7fffffffd5b8:  0x0000000000400648  ← dirección de retorno a main+386
+                 0x0000000000000000
+0x7fffffffd5c8:  0x0000000000000003  0x0000000000405320
+0x7fffffffd5d8:  0x0000000300000000  0x00007fffffffd680
+0x7fffffffd5e8:  0x00007ffff7dac5b5  0x00007ffff7fc5000
+
+Disassembly de convertir_gini:
+=> 0x4006d0 <+0>:  cvtss2si %xmm0, %eax   ; float → int (truncado)
+   0x4006d4 <+4>:  add    $0x1, %eax       ; suma 1
+   0x4006d7 <+7>:  ret                     ; retorna
+```
+
+**Ejecución de las instrucciones:**
+
+| Instrucción | Efecto | Valor en `eax` |
+|---|---|---|
+| `cvtss2si %xmm0, %eax` | convierte 42.4 → 42 (trunca hacia cero) | `0x2a` = **42** |
+| `add $0x1, %eax` | suma 1 | `0x2b` = **43** |
+| `ret` | desapila retaddr en RIP, RSP += 8 | — |
+
+---
+
+#### PUNTO 3 — DESPUÉS del `ret`: de vuelta en `main`
+
+El `ret` desapiló la dirección de retorno (`0x400648`) en `RIP` y restauró `RSP` a su
+valor original. El resultado se encuentra en `eax`/`rax`.
+
+```
+rsp = 0x7fffffffd5c0   ← restaurado, igual que en PUNTO 1
+rbp = 0x7fffffffd5e0
+
+rax = 0x2b = 43        ← resultado devuelto por convertir_gini
+
+Stack restaurado (idéntico al PUNTO 1):
+0x7fffffffd5c0:  0x0000000000000000  0x0000000000000003
+0x7fffffffd5d0:  0x0000000000405320  0x0000000300000000
+0x7fffffffd5e0:  0x00007fffffffd680  0x00007ffff7dac5b5
+0x7fffffffd5f0:  0x00007ffff7fc5000  0x00007fffffffd708
+```
+
+---
+
+#### Análisis del comportamiento del stack
+
+El ciclo de vida completo de la llamada ilustra la convención **System V AMD64 ABI**:
+
+1. **Paso de argumento**: el compilador carga el float en `xmm0` (registro de punto
+   flotante designado para el primer argumento de tipo `float`/`double`).
+2. **`call`**: empuja la dirección de la siguiente instrucción (`0x400648`) en el stack
+   y decrementa `RSP` en 8. La pila crece hacia direcciones más bajas.
+3. **Cuerpo de la función**: `convertir_gini` no usa prólogo (`push %rbp` / `mov %rsp,%rbp`)
+   porque no tiene variables locales. Lee el argumento directamente de `xmm0` y escribe
+   el resultado en `eax`.
+4. **`ret`**: desapila la dirección de retorno en `RIP` e incrementa `RSP` en 8,
+   restaurando la pila al estado exacto del PUNTO 1.
+5. **Lectura del resultado**: `main` lee `eax` inmediatamente después del `call`
+   (`mov %eax, -0x14(%rbp)`) y lo almacena en la variable local `convertido`.
 
