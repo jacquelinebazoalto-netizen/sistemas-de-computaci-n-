@@ -4,18 +4,17 @@
 
 El sistema implementado sigue una arquitectura en capas:
 
-Python (API REST)
-        ↓
-Obtención de datos (JSON)
-        ↓
-Programa en C (stdin)
-        ↓
-Rutina en ensamblador
-        ↓
-Resultado procesado
-        ↓
-Salida por consola
-
+Python (API REST)  
+↓  
+Obtención de datos (JSON)  
+↓  
+Programa en C (stdin)  
+↓  
+Rutina en ensamblador  
+↓  
+Resultado procesado  
+↓  
+Salida por consola  
 Cada capa cumple una función específica:
 
 - Python: adquisición de datos
