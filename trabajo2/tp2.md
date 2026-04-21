@@ -251,43 +251,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Flujo de ejecución del sistema
 
 El sistema implementado sigue una arquitectura en capas:
