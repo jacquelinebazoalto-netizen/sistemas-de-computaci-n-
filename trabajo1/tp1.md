@@ -52,6 +52,16 @@ Estos benchmarks permiten obtener una visión completa del rendimiento del siste
 ## Benchmark que podríamos utilizar en nuestro día a día según las tareas que realizamos en nuestra PC:
 
 
+*Benchmark utilizados por la integrante Rocabado Bazoalto Jacqueline*
+| Tarea                              | Benchmark Más Representativo | Motivo                                                                 |
+|-----------------------------------|-----------------------------|------------------------------------------------------------------------|
+| Simulación de circuitos (Multisim) | Whetstone                   | Evalúa cálculos de punto flotante, clave en simulaciones eléctricas   |
+| Edición de documentos y PDFs       | SPEC CPU                    | Mide el rendimiento en cargas de trabajo generales                    |
+| Navegación web y multitarea        | Imbench                     | Mide latencias de memoria y eficiencia del sistema operativo          |
+| Programación y compilación (C, Python) | SPEC CPU / Dhrystone       | Evalúan rendimiento en operaciones con enteros y ejecución de código  |
+| Cálculos en Excel y MATLAB         | LINPACK / STREAM            | Miden capacidad de procesamiento matemático y ancho de banda de memoria |
+
+
 *Benchmarks utilizados por el integrante Brezzo Benjamin*
 | Actividad                           |Benchmark           |
 | -------------------------------------------------- | ---------------------------------- |
@@ -134,8 +144,6 @@ Intel 428 dolares
 Ryzen 7950 802 dolares 
 
 En términos de costo, el AMD Ryzen 9 5900HX 12-Core que ofrece un buen rendimiento a un precio más accesible. Además, también presenta un consumo energético menor que el Ryzen 9 7950X, lo que lo hace más conveniente en relación rendimiento/consumo. Por otro lado, aunque el Ryzen 9 7950X es el más potente, su mayor costo y consumo lo hacen menos eficiente en este aspecto.
-
-
 
 
 
