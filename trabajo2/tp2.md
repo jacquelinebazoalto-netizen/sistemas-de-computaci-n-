@@ -58,7 +58,7 @@ En este trabajo, el valor GINI se pasa mediante `xmm0`, ya que es un número de 
 
 El uso de registros permite reducir accesos a memoria y mejorar el rendimiento.
 
-# Rol del lenguaje ensamblador en el sistema
+### Rol del lenguaje ensamblador en el sistema
 
 El lenguaje ensamblador cumple el rol de capa de procesamiento de bajo nivel dentro de una arquitectura multicapa (Python → C → ASM).
 
