@@ -1,7 +1,20 @@
 *.out
 *.bin
 *.o
+*.so
+*.a
+*.exe
 
 trabajo1/profiling/perf.data
 trabajo1/profiling/test_gprof
 
+trabajo2/consigna/
+trabajo2/CLAUDE.md
+.agent.md
+
+# Ejecutables generados
+gini_c
+gini_asm
+gini_python
+*/build/
+*/bin/
