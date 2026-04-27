@@ -65,9 +65,7 @@ _Agrupa las diferentes secciones (.text, .data, .bss) de manera coherente.
 <- BORRAR Y RESPONDER ACÁ->
 
 ### ¿Para que se utiliza la opción --oformat binary en el linker?
----
-<- BORRAR Y RESPONDER ACÁ->
-
+Se utiliza para generar un archivo binario puro (sin cabeceras de formato ELF u otros) que pueda ser cargado directamente por el BIOS o un emulador.
 
 ## Modo Protegido
 
@@ -80,12 +78,8 @@ _Agrupa las diferentes secciones (.text, .data, .bss) de manera coherente.
 <- BORRAR Y RESPONDER ACÁ->
 
 ### Cambiando los bits de acceso al segmento de datos para que sea solo lectura
----
-<- BORRAR Y RESPONDER ACÁ->
 
 ### En modo protegido, ¿Con qué valor se cargan los registros de segmento ? ¿Por qué?
----
-<- BORRAR Y RESPONDER ACÁ->
-
+En el modo protegido, los registros de segmento, como CS, DS, SS, se cargan con un valor que hace referencia a un descriptor de segmento específico en la GDT. En este desafio, el valor de CS se carga con el selector del segmento de código, mientras que DS se carga con el selector del segmento de datos. Los valores de los registros de segmento determinan los permisos y la base de cada segmento. En el caso del segmento de datos, configuramos los permisos para que sea solo lectura, lo que evita que se escriba en él.
 ## Conclusión
 
