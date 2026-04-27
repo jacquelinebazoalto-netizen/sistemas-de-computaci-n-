@@ -48,8 +48,12 @@ Entre las principales ventajas de coreboot se encuentran su rapidez de arranque,
 ## Linker
 
 ### ¿Que es un linker? ¿que hace?
----
-<- BORRAR Y RESPONDER ACÁ->
+Un linker es una herramienta que combina uno o más archivos objeto (.o) generados por el compilador en un solo archivo ejecutable o binario. Resuelve referencias a funciones o variables entre los distintos archivos.
+¿Qué hace el Linker?
+
+_Asigna direcciones de memoria a las instrucciones y datos.
+_Resuelve direcciones de etiquetas.
+_Agrupa las diferentes secciones (.text, .data, .bss) de manera coherente.
 
 
 ### ¿Que es la dirección que aparece en el script del linker?¿Porqué es necesaria?
