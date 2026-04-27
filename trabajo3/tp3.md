@@ -3,8 +3,21 @@
 ## UEFI y Coreboot
 
 ### ¿Qué es UEFI? ¿como puedo usarlo? Mencionar además una función a la que podría llamar usando esa dinámica.
----
-<- BORRAR Y RESPONDER ACÁ->
+UEFI (Unified Extensible Firmware Interface) es una interfaz de firmware estándar que reemplaza al BIOS tradicional.
+Es el software que arranca la computadora antes del sistema operativo
+Define cómo interactúan: el hardware,el firmware y el sistema operativo
+### ¿Cómo podés usarlo?
+A través de:
+Aplicaciones UEFI
+Drivers UEFI
+Bootloaders
+Todos estos interactúan usando:
+Boot Services
+Runtime Services
+La dinámica de uso de UEFI consiste en acceder a la UEFI System Table, que es la estructura principal desde donde el firmware expone sus servicios. A partir de esta tabla, se obtienen punteros a distintas funciones organizadas en Boot Services y Runtime Services. Utilizando estos punteros, el programa puede invocar funciones del firmware para realizar diversas tareas, como manejar memoria, cargar aplicaciones o interactuar con dispositivos, todo dentro del entorno previo al sistema operativo.
+Un ejemplo de función importante dentro del entorno UEFI es LoadImage(). Esta función se utiliza para cargar en memoria una imagen ejecutable UEFI, como puede ser un bootloader o una aplicación. Su uso permite preparar el programa para su posterior ejecución, facilitando así el proceso de arranque del sistema o la ejecución de herramientas en la etapa previa al sistema operativo.
+
+
 
 ### Casos de bugs de UEFFI que puedes ser explotados
 ---
