@@ -103,6 +103,84 @@ Y lo más importante se puede ver en la última línea:
 ```
 Los bytes `55 aa` están en los offsets `0x1fe` y `0x1ff`, exactamente donde la BIOS los espera. El archivo termina en `0x200 = 512 bytes`, por lo tanto esta todo correcto.
 
+**Grabado de pendrive y prueba en PC real**:
+
+![grabado-pendrive](/trabajo3/img/grabado-pendrive.png)
+
+A pesar de que todo pareciera indicar que se grabó correctamente la imagen en el pendrive, al intentar ejecutarlo en distintas PCs (tres PCs distintas) no logramos ver el "hello world". Sin embargo si se lograba ver un guión "_" itermitente, que por lo que pudimos averiguar esto significa que la BIOS si encontró la firma `55 AA`, cargo el sector en `0x7C00` y saltó a ejecutarlo. El problema es que el código corre pero no imprime nada. El problema es que el valor de `DS` al arrancar depende de la BIOS, y cada BIOS lo deja en un valor distinto. Algunas lo dejan en `0`, otras en `0x07C0`, otras en cualquier cosa.
+Con ayuda de la IA nos dio variantes del código de [main.S](/trabajo3/bootloader/main.S) para que se pueda ejecutar, pero ninguna funcionó y ya sentíamos que estabamos modificando sin entender.
+
+Decidimos volver al código original que si conocemos y probar la ejeción con QEMU:
+
+![imagen-qemu](/trabajo3/img/ejecucion-imagem-qemu.png)
+
+QEMU es un emulador de hardware completo que simula por software una PC x86 completa, incluyendo una BIOS tradicional (SeaBIOS).
+Y para este caso si nos funcionó y pudimos ver el `"hello world"`.
+
+### Depuración con gdb dashboard
+
+Cuando QEMU arranca el `main.img`, emula exactamente lo que haría una PC real: la BIOS carga el primer sector del disco (512 bytes) en la dirección física 0x7C00 de RAM y le transfiere el control. El código vive ahi, en modo real de 16 bits.
+
+Lanzando QEMU con el stub de GDB:
+
+![qemu-gdb](/trabajo3/img/ejecucion-qemu.png)
+
+utilizamos el comando
+
+```bash
+qemu-system-i386 -fda main.img -boot a -s -S -monitor stdio
+```
+
+Para conectar `gdb`:
+1. En otra terminal ejecutamos `gdb source ~/.gdbinit`
+2. Nos conectamos a stub de QEMU con `(gdb) target remote localhost:1234`
+3. Le decimos a GDB que estamos en 16 bits con `(gdb) set architecture i8086`. Por defecto, GDB asume que el código es de 32 o 64 bits y va a desensamblar mal. Con esto le decimos que estamos en modo real de 16 bits (i8086).
+
+![inicializacion-gdb](/trabajo3/img/inicializacion-gdb.png)
+
+Notemos que aparece
+```
+Remote debugging using localhost:1234
+0x0000fff0 in ?? ()
+```
+
+La dirección 0x0000fff0 es donde el procesador x86 siempre empieza: el reset vector. Es el último punto de la memoria antes del tope del espacio de direcciones (es un jump a la BIOS).
+
+Vamos a agregar un breakpoint en la dirección de arranque del bootloader.
+```
+(gdb) br *0x7c00
+```
+
+Con esto le decimos a GDB que pause cuando la ejecución llegue a `0x7C00`. Esta es la dirección donde la BIOS carga y ejecuta el bootloader.
+
+Para continuar con el breakpoint:
+
+```
+(gdb) c
+```
+
+![primer-breakpoint-y-continue](/trabajo3/img/primer-br-y-c.png)
+
+QEMU "descongela" la CPU, la BIOS hace su trabajo (inicializa hardware, busca dispositivo booteable, carga el sector), y cuando llega a `0x7c00` GDB congela la ejecución nuevamente.
+
+No podemos poner un breakpoint directamente en `int $0x10` porque cuando GDB intenta hacer `si` dentro de una interrupción de BIOS, entra al código de la BIOS (que está en ROM/memoria emulada), y eso es un laberinto: código sin símbolos, en modo real, que puede durar cientos de instrucciones. GDB puede perderse o comportarse raro.
+
+Pondremos un breakpoint en la instrucción anterior o siguiente a `int $0x10`, para que cuando la interrupción termine y la BIOS devuelva el control, GDB pause ahí y podamos ver el efecto.
+
+Para encontrar las direcciones tenemos que desensamblar el código desde `0x7c00`:
+```
+(gdb) x/20i 0x7c00
+```
+
+![desensamblado-y-direcciones](/trabajo3/img/desensamblado-direcciones.png)
+
+Si lo queremos ubicar antes debemos poner el breakpoint en la dirección `0x7c08`
+
+![ejecucion-con-br](/trabajo3/img/ejecucion-con-br.png)
+
+Dandole continue `c` se va ejecutando y mostrando el caracter en QEMU.
+
+
 
 ### ¿Para que se utiliza la opción --oformat binary en el linker?
 ---
