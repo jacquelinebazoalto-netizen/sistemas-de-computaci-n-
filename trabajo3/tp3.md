@@ -191,18 +191,132 @@ Dandole continue `c` se va ejecutando y mostrando el caracter en QEMU.
 
 ### Código en assembler que pueda pasar a modo protegido
 ---
-<- BORRAR Y RESPONDER ACÁ->
+
+Para realizar este punto, escribimos el código en ensamblador [main_pm.S](/trabajo3/bootloader/main_pm.S), basándonos en el código ya realizado en el repositorio de GitHub, en específico el archivo [common.h](https://github.com/cirosantilli/x86-bare-metal-examples/blob/master/common.h#L135), más información obtenida de internet y con ayuda en explicaciones por parte de la IA. Aclaramos que si bien utilizamos IA, nos comprometimos a aprender y entender todo lo que hicimos. Tratamos a la IA como una herramienta más.
+
+En el código se realizaron comentarios que describen el proceso.
+
+Para corroboroar que el código es correcto, y que en efecto logramos pasar al modo protegido, compilamos y linkeamos con el mismo linker [link.ld](/trabajo3/bootloader/link.ld), y ejecutamos en QEMU:
+
+![compilacion-pm](/trabajo3/img/compilacion_protec_mode.png)
+
+> Notar que verificamos el tamaño de 512 bytes
+
+Ejecución con qemu:
+
+![ejecucion-qemu-pm](/trabajo3/img/ejecucion-modo-protegido.png)
+
+
 
 ### ¿Cómo sería un programa que tenga dos descriptores de memoria diferentes, uno para cada segmento (código y datos) en espacios de memoria diferenciados?
 ---
-<- BORRAR Y RESPONDER ACÁ->
 
-### Cambiando los bits de acceso al segmento de datos para que sea solo lectura
+Para que un programa tenga los descriptores de código y datos en espacios de memoria deiferenciados hay que cambiar los campos base de los descriptores de la GDT. El resto del programa queda igual.
+
+Para fijar las bases distintas:
+- Segmento de código -> base `0x00008000`
+- Segmento de datos -> base `0x00002000`
+- Límite de cada -> `0xFFFF` con `G=0` (granularidad en bytes, no en páginas), para que sean zonas acotadas y diferenciadas.
+
+
+La modificación en la GDT sería lo siguente:
+```asm
+gdt_code:
+    .word 0xffff        /* Limit[15:0]   = 0xFFFF (64KB)          */
+    .word 0x8000        /* Base[15:0]    = 0x8000  ← cambió       */
+    .byte 0x00          /* Base[23:16]   = 0x00                   */
+    .byte 0b10011010    /* Access byte   (igual que antes)         */
+    .byte 0b01001111    /* Flags+Limit:  G=0 ← cambió, DB=1, L=0  */
+    .byte 0x00          /* Base[31:24]   = 0x00                   */
+
+gdt_data:
+    .word 0xffff        /* Limit[15:0]   = 0xFFFF (64KB)          */
+    .word 0x0000        /* Base[15:0]    = 0x0000                 */
+    .byte 0x02          /* Base[23:16]   = 0x02  ← acá está el 0x02 de 0x00020000 */
+    .byte 0b10010010    /* Access byte   (igual que antes)         */
+    .byte 0b01001111    /* Flags+Limit:  G=0 ← cambió, DB=1, L=0  */
+    .byte 0x00          /* Base[31:24]   = 0x00                   */
+```
+
+El único flag que cambió en el código anterior es G (Granularity), que pasó de 1 a 0. Con `G=1` el límite se multiplica por 4KB, entonces `0xFFFF × 4KB = 4GB`. Con `G=0` el límite está en bytes directamente, entonces `0xFFFF = 64KB`. Eso es lo que nos permite tener segmentos acotados y diferenciados en el mapa de memoria.
+
+Lo importante para entender acá es que **en modo protegido una dirección lógica no es una dirección física**. Cuando el código hace `mov %ax, (%edi)` con `DS` cargado con el selector de datos, el procesador calcula:
+```
+dirección física = base del segmento (del descriptor en la GDT) + offset (EDI)
+                = 0x00020000 + EDI
+```
+El mismo offset `0x0000` en `CS` apunta a `0x8000` en memoria física, y ese mismo offset en `DS` apunta a `0x20000`. Dos espacios completamente diferenciados por hardware.
+
+### Cambiando los bits de acceso al segmento de datos para que sea solo lectura e intentando escribir en el
 ---
-<- BORRAR Y RESPONDER ACÁ->
+
+Cuando el procesador en modo protegido detecta una violación de los atributos de un segmentos (intenta escribir en uno de solo lectura), genera una excepción #GP (General Protection Fault). **Esta es una excepción de tipo fault, lo que quiere decir que el procesador la detecta antes de ejecutar la instrucción que la causa**.
+
+Para manejar una #GP el procesador busca su handler en la IDT (Interrupt Descriptor Table), que es el equivalente en modo protegido de la IVT de modo real. Pero en nuestro caso no tenemos ninguna IDT configurada. Entonces ocurriría lo siguiente:
+
+1. Intento de escritura en segmento RO
+2. Procesador genera #GP
+3. Busca handler en IDT -> IDT no existe / inválida
+4. Procesador genera #DF - Double Fault
+5. Busca handler de #DF en IDT -> tampoco existe
+6. Triple fault -> el procesador se resetea completamente
+
+En QEMU deberíamos ver que la máquina virtual se resetea sola o se congela. Y con GDB vamos a poder pausar la ejecución justo antes del reset y ver en que instrucción ocurre.
+
+El bit que controla si un segmento de datos es escribible es el bit 1 (RW) del access byte:
+```
+Access byte actual (escribible):   0b10010010  = 0x92
+                                         ↑
+                                      RW=1 (writable)
+
+Access byte nuevo (solo lectura):  0b10010000  = 0x90
+                                         ↑
+                                      RW=0 (read-only)
+```
+
+Esto se debe modificar en el `gdt_data` del [main_pm.S](/trabajo3/bootloader/main_pm.S).
+Y en el código de 32 bits se agrega un intento de escritura explícito para disparar la excepción. Lo pondremos después de configurar los segmentos y antes del print loop.
+
+Para verlo con GDB primero pondremos un breakpoint en `0x7c00`, donde la BIOS carga el MBR. Y lo ejecutaremos hasta este breakpoint con `continue`.
+
+Hay que cambiar a la arquitecturra de 32 bits para cuando entremos a modo protegido con `set architecture i386`.
+
+Y para poner un breakpoint en la instrucción inválida tendríamos que calcular la dirección. Una forma más fácil es poner el breakpoint en `protected_mode` y avanzar con single instruction hasta llegar al mov que escribe. Hace `break *protected_mode`.
+
+Para ver los registros usamos `info registers`.
+
+
 
 ### En modo protegido, ¿Con qué valor se cargan los registros de segmento ? ¿Por qué?
+
 ---
-<- BORRAR Y RESPONDER ACÁ->
+
+En modo protegido los registros de segmento (`CS`, `DS`, `SS`, `ES`, `FS`, `GS`) se cargan con un selector, no con una dirección directa como en modo real.
+
+Un selector es un valor de 16 bits con la siguiente estructura:
+
+- bits 15-3: Índice. Qué entrada de la tabla de descriptores usar. Como cada descriptor ocupa 8 bytes, la dirección del descriptor = índice × 8.
+- bits 3-2: TI. Qué tabla usar. 0 = GDT, 1 = LDT.
+- bits 1-0: RPL. Requested Privilege Level, el nivel de privilegio con el que se solicita el acceso (0=kernel, 3=usuario).
+
+En modo protegido el registro de segmento ya no contiene una dirección sino una referencia a un descriptor. Cuando escribimos un selector en `DS` por ejemplo, el procesador automáticamente va a la `GDT`, busca la entrada en el índice indicado, y carga en su caché interno invisible (el descriptor cache) la base, el límite y los atributos de ese segmento. A partir de ahí, cada acceso a memoria a través de `DS` usa esa información cacheada para:
+
+- Verificar que el offset no supere el límite del segmento.
+- Verificar que el nivel de privilegio sea compatible.
+- Verificar que el tipo de acceso sea permitido (lectura/escritura/ejecución).
+- Calcular la dirección física = base del descriptor + offset.
+
+Eso es exactamente lo que vimos en el código que realizamos:
+```asm
+
+mov $DATA_SEG, %ax
+mov %ax, %ds
+mov %ax, %es
+mov %ax, %fs
+mov %ax, %gs
+mov %ax, %ss
+```
+Cada uno de esos `mov` hace que el procesador consulte la `GDT`, valide el selector y cargue el descriptor cache correspondiente. Si no hiciéramos esto después del far jump, los registros de segmento seguirían teniendo valores de modo real que en modo protegido serían interpretados como selectores inválidos, generando una #GP en el primer acceso a memoria.
+
 
 ## Conclusión
