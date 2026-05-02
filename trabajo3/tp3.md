@@ -3,12 +3,23 @@
 ## UEFI y Coreboot
 
 ### ¿Qué es UEFI? ¿como puedo usarlo? Mencionar además una función a la que podría llamar usando esa dinámica.
+---
 
-UEFI (Unified Extensible Firmware Interface) es una interfaz de firmware estándar que reemplaza al BIOS tradicional.
-Es el software que arranca la computadora antes del sistema operativo
+UEFI (Unified Extensible Firmware Interface) es una especificación de firmware moderna que reemplaza al BIOS tradicional. Actúa como una capa intermedia entre el hardware y el sistema operativo, encargándose de la inicialización del sistema y del proceso de arranque.
+Es el software que arranca la computadora antes del sistema operativo.
 Define cómo interactúan: el hardware,el firmware y el sistema operativo
-### ¿Cómo podés usarlo?
-A través de:
+
+A diferencia del BIOS, UEFI posee una arquitectura modular, soporte para discos grandes (GPT), interfaz gráfica y capacidades de seguridad avanzadas.
+
+Se puede utilizar accediendo al menú de firmware durante el arranque del sistema (teclas como F2, DEL o ESC). Desde allí es posible:
+- Configurar el orden de booteo
+- Habilitar o deshabilitar dispositivos
+- Gestionar opciones de seguridad
+- Configurar parámetros de hardware
+
+Una función importante accesible mediante esta interfaz es Secure Boot, que permite verificar criptográficamente la integridad del sistema operativo antes de su ejecución, evitando la carga de software no autorizado o malicioso.
+
+Se puede usar a través de:
 Aplicaciones UEFI
 Drivers UEFI
 Bootloaders
@@ -16,33 +27,70 @@ Todos estos interactúan usando:
 Boot Services
 Runtime Services
 La dinámica de uso de UEFI consiste en acceder a la UEFI System Table, que es la estructura principal desde donde el firmware expone sus servicios. A partir de esta tabla, se obtienen punteros a distintas funciones organizadas en Boot Services y Runtime Services. Utilizando estos punteros, el programa puede invocar funciones del firmware para realizar diversas tareas, como manejar memoria, cargar aplicaciones o interactuar con dispositivos, todo dentro del entorno previo al sistema operativo.
+
 ### Funcion Ejemplo:
 Un ejemplo de función importante dentro del entorno UEFI es LoadImage(). Esta función se utiliza para cargar en memoria una imagen ejecutable UEFI, como puede ser un bootloader o una aplicación. Su uso permite preparar el programa para su posterior ejecución, facilitando así el proceso de arranque del sistema o la ejecución de herramientas en la etapa previa al sistema operativo.
 
+
 ### Casos de bugs de UEFFI que puedes ser explotados
+---
 
 Un caso de vulnerabilidad en UEFI mencionado en el documento es el S3 Resume Boot Script Attack. Este ocurre durante la reanudación del sistema desde el estado de suspensión (S3), donde el firmware utiliza un “boot script” previamente generado para reconfigurar rápidamente el hardware. Si este script no está adecuadamente protegido, un atacante puede modificarlo o alterar sus punteros, logrando así la ejecución de código arbitrario en una etapa muy temprana del arranque, comprometiendo la seguridad del sistema.
-
 Además, existen otros posibles bugs en UEFI, como el Secure Boot Bypass, que ocurre cuando fallas en la verificación de firmas digitales permiten ejecutar software no autorizado, y los ataques a drivers UEFI, donde controladores maliciosos pueden cargarse si no se implementan correctamente los mecanismos de validación. Estas vulnerabilidades son críticas debido a que afectan una capa fundamental del sistema, permitiendo incluso persistencia a nivel de firmware.
 
+Existen múltiples vulnerabilidades en UEFI que han sido explotadas. Un caso relevante es el de equipos Lenovo con fallas como:
+
+- CVE-2021-3971 y CVE-2021-3972: permiten modificar variables NVRAM y desactivar protecciones como Secure Boot.
+- CVE-2021-3970: permite ejecución de código con privilegios elevados.
+
+Estos bugs permiten instalar bootkits, malware que se ejecuta antes del sistema operativo, como:
+
+- MosaicRegressor
+- Lojax
+
+Este tipo de ataques es particularmente peligroso porque:
+
+- Se ejecuta antes del sistema operativo
+- Puede persistir incluso después de reinstalar el sistema
+- Es difícil de detectar con herramientas tradicionales
 
 ### ¿Qué es Converged Security and Management Engine (CSME), the Intel Management Engine BIOS Extension (Intel MEBx).?
+---
 
 El Converged Security and Management Engine (CSME) es un subsistema integrado en los chipsets de Intel que funciona como un microcontrolador independiente dentro de la plataforma. Opera de manera separada del procesador principal y del sistema operativo, y se encarga de funciones relacionadas con la seguridad, la gestión remota y el arranque del sistema. Entre sus tareas se incluyen la verificación de integridad del firmware, la ejecución de funciones criptográficas y el soporte de tecnologías como Intel Active Management Technology (AMT), permitiendo administrar equipos incluso cuando están apagados o sin sistema operativo activo.
 
-Por otro lado, el Intel Management Engine BIOS Extension (Intel MEBx) es una interfaz de configuración accesible desde el BIOS/UEFI que permite al usuario o administrador configurar las funcionalidades del Management Engine. A través de MEBx se pueden establecer parámetros como la configuración de red, credenciales de acceso y opciones de administración remota. En conjunto, CSME y MEBx forman parte de la infraestructura de gestión y seguridad de las plataformas Intel, operando a un nivel muy bajo dentro del sistema.
+Se encarga de:
 
+- Seguridad (Boot Guard, TPM, DRM)
+- Inicialización del hardware
+- Gestión remota (Intel AMT)
+
+Por otro lado, el Intel Management Engine BIOS Extension (Intel MEBx) es una interfaz de configuración accesible desde el BIOS/UEFI que permite al usuario o administrador configurar las funcionalidades del Management Engine. A través de MEBx se pueden establecer parámetros como la configuración de red, credenciales de acceso y opciones de administración remota. 
+En conjunto, CSME y MEBx forman parte de la infraestructura de gestión y seguridad de las plataformas Intel, operando a un nivel muy bajo dentro del sistema.
+Opera incluso cuando el sistema está apagado.
 
 ### ¿Qué es coreboot ? ¿Qué productos lo incorporan ?¿Cuales son las ventajas de su utilización?
+---
 
-Coreboot es un proyecto de firmware de código abierto que reemplaza al BIOS o UEFI tradicional en una computadora. Su función principal es inicializar el hardware del sistema de la manera más rápida y simple posible, para luego transferir el control a un programa de arranque más completo, como un bootloader o incluso directamente a un sistema operativo. A diferencia de las soluciones propietarias, coreboot permite acceso y modificación de su código, lo que lo hace altamente flexible y adaptable.
+Coreboot es un proyecto de firmware de código abierto que reemplaza al BIOS o UEFI tradicional en una computadora. Su función principal es inicializar el hardware del sistema de la manera más rápida y simple posible, para luego transferir el control a un programa de arranque más completo, como un bootloader o incluso directamente a un sistema operativo. 
+A diferencia de las soluciones propietarias, coreboot permite acceso y modificación de su código, lo que lo hace altamente flexible y adaptable.
 ### Productos que lo incorporan
 
-Este firmware es utilizado en diversos productos, especialmente en dispositivos que priorizan seguridad, transparencia o personalización. Por ejemplo, es empleado en algunas computadoras portátiles de fabricantes como Google (Chromebooks), en servidores, sistemas embebidos y equipos especializados donde se requiere control total del firmware.
+Este firmware es utilizado en diversos productos, especialmente en dispositivos que priorizan seguridad, transparencia o personalización. 
+Por ejemplo, es empleado en algunas computadoras portátiles de fabricantes como Google (Chromebooks), en servidores, sistemas embebidos y equipos especializados donde se requiere control total del firmware.
 
 ### Ventajas de utilización
 
-Entre las principales ventajas de coreboot se encuentran su rapidez de arranque, ya que inicializa solo el hardware necesario; su carácter de código abierto, que permite auditorías de seguridad y modificaciones; y su flexibilidad, al poder adaptarse a distintas plataformas y necesidades específicas. Además, reduce la dependencia de firmware propietario, lo cual es importante en entornos donde la seguridad y la confianza en el sistema son críticas.
+Entre las principales ventajas de coreboot se encuentran su rapidez de arranque, ya que inicializa solo el hardware necesario; su carácter de código abierto, que permite auditorías de seguridad y modificaciones; y su flexibilidad, al poder adaptarse a distintas plataformas y necesidades específicas. 
+Además, reduce la dependencia de firmware propietario, lo cual es importante en entornos donde la seguridad y la confianza en el sistema son críticas.
+
+Otras ventajas:
+
+- Código abierto → mayor auditabilidad y transparencia
+- Menor tamaño → reducción de la superficie de ataque
+- Arranque significativamente más rápido
+- Alta flexibilidad mediante payloads personalizados
+- Diseño minimalista que mejora la seguridad (menor complejidad)
 
 ### Hello World: Compilar y Linkear
 
@@ -68,26 +116,42 @@ Y ahora vamos a compilar y linkear el hello world
 Notar que `main.img` pesa exactamente **512 bytes**, que es el tamaño exacto de un sector MBR. Esto es importante porque la firma de arranque `0x55 0xAA` debe estar en los bytes 510 y 511 (offsets 0x1FE y 0x1FF). La BIOS lee el primer sector del disco, va directo a esos dos offsets específicos, y si no encuentra `55 AA` ahi, declara que el dispositivo no es booteable y ni lo intenta ejecutar.
 La BIOS solo lee exactamente 512 bytes (un sector) y los carga en `0x7C00`.
 
-
 ## Linker
 
 ### ¿Que es un linker? ¿que hace?
+---
 
+Un linker es una herramienta que combina uno o más archivos objeto (.o) generados por el compilador en un solo archivo ejecutable o binario. 
+Resuelve referencias a funciones o variables entre los distintos archivos.
 
-Un linker es una herramienta que combina uno o más archivos objeto (.o) generados por el compilador en un solo archivo ejecutable o binario. Resuelve referencias a funciones o variables entre los distintos archivos.
+Sus funciones principales son:
+
+- Une archivos objeto en un ejecutable
+- Resuelve símbolos (funciones/variables)
+- Reubica direcciones en memoria
+- Organiza secciones (.text, .data)
+
 ¿Qué hace el Linker?
 
-_Asigna direcciones de memoria a las instrucciones y datos.
-_Resuelve direcciones de etiquetas.
-_Agrupa las diferentes secciones (.text, .data, .bss) de manera coherente.
+- Asigna direcciones de memoria a las instrucciones y datos.
+- Resuelve direcciones de etiquetas.
+- Agrupa las diferentes secciones (.text, .data, .bss) de manera coherente.
 
 
-### ¿Que es la dirección que aparece en el script del linker? ¿Por qué es necesaria?
+### ¿Que es la dirección que aparece en el script del linker?¿Porqué es necesaria?
 ---
-<- BORRAR Y RESPONDER ACÁ->
+
+Es la dirección de memoria donde se ubicará el programa al ejecutarse. Es necesaria porque la BIOS carga el bootloader en esa dirección. El linker debe saberlo para calcular correctamente saltos y accesos a memoria.
+Es necesaria porque:
+
+- La BIOS carga el bootloader en una dirección fija (0x7C00)
+- El código debe coincidir con esa ubicación para que los saltos y referencias sean correctos
+
+Sin esta información, el programa no funcionaría correctamente debido a errores en direccionamiento.
 
 ### Compare la salida de objdump con hd, verifique donde fue colocado el programa dentro de la imagen. 
 ---
+
 Vamos a correr las herramientas `objdump` y `hd`, y comparar las salidas.
 
 Corremos `objdump` sobre el object file:
@@ -150,10 +214,24 @@ Y para este caso si nos funcionó y pudimos ver el `"hello world"`.
 
 
 ### ¿Para que se utiliza la opción --oformat binary en el linker?
+---
+
+Se usa para generar un binario puro, sin encabezados.
+
+Sirve para:
+
+Bootloaders
+Sistemas embebidos
+Carga directa en memoria
+
+### ¿Para que se utiliza la opción --oformat binary en el linker?
+---
+
 Se utiliza para generar un archivo binario puro (sin cabeceras de formato ELF u otros) que pueda ser cargado directamente por el BIOS o un emulador.
 
 
 ### Depuración con gdb dashboard
+---
 
 Cuando QEMU arranca el `main.img`, emula exactamente lo que haría una PC real: la BIOS carga el primer sector del disco (512 bytes) en la dirección física 0x7C00 de RAM y le transfiere el control. El código vive ahi, en modo real de 16 bits.
 
@@ -276,6 +354,7 @@ dirección física = base del segmento (del descriptor en la GDT) + offset (EDI)
 ```
 El mismo offset `0x0000` en `CS` apunta a `0x8000` en memoria física, y ese mismo offset en `DS` apunta a `0x20000`. Dos espacios completamente diferenciados por hardware.
 
+
 ### Cambiando los bits de acceso al segmento de datos para que sea solo lectura e intentando escribir en el
 ---
 
@@ -393,6 +472,7 @@ rax = 0x0         -> todos los registros generales reseteados
 
 En conclusión, al intentar cargar el selector de solo lectura en SS, el procesador generó una #GP. Sin IDT configurada, escaló a #DF y luego a triple fault, lo que se evidencia en GDB por el salto del RIP a la ROM del BIOS y el bit PE de CR0 apagándose, indicando que el procesador se reseteó completamente y abandonó el modo protegido.
 
+
 ### En modo protegido, ¿Con qué valor se cargan los registros de segmento ? ¿Por qué?
 
 ---
@@ -424,5 +504,13 @@ mov %ax, %ss
 ```
 Cada uno de esos `mov` hace que el procesador consulte la `GDT`, valide el selector y cargue el descriptor cache correspondiente. Si no hiciéramos esto después del far jump, los registros de segmento seguirían teniendo valores de modo real que en modo protegido serían interpretados como selectores inválidos, generando una #GP en el primer acceso a memoria.
 
-
 ## Conclusión
+
+El trabajo muestra cómo funciona el sistema desde el arranque a muy bajo nivel:
+
+UEFI y BIOS controlan el inicio del sistema
+El linker permite construir ejecutables correctamente ubicados en memoria
+El modo protegido introduce seguridad y control de memoria mediante segmentación
+coreboot y tecnologías como CSME muestran la evolución del firmware moderno
+
+En conjunto, se entiende cómo el hardware, firmware y software interactúan desde el primer ciclo de ejecución hasta el sistema operativo.
