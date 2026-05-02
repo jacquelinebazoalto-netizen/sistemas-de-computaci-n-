@@ -254,7 +254,7 @@ Cuando el procesador en modo protegido detecta una violación de los atributos d
 
 Para manejar una #GP el procesador busca su handler en la IDT (Interrupt Descriptor Table), que es el equivalente en modo protegido de la IVT de modo real. Pero en nuestro caso no tenemos ninguna IDT configurada. Entonces ocurriría lo siguiente:
 
-1. Intento de escritura en segmento RO
+1. Intento de escritura en segmento RO (Read-Only)
 2. Procesador genera #GP
 3. Busca handler en IDT -> IDT no existe / inválida
 4. Procesador genera #DF - Double Fault
@@ -277,15 +277,92 @@ Access byte nuevo (solo lectura):  0b10010000  = 0x90
 Esto se debe modificar en el `gdt_data` del [main_pm.S](/trabajo3/bootloader/main_pm.S).
 Y en el código de 32 bits se agrega un intento de escritura explícito para disparar la excepción. Lo pondremos después de configurar los segmentos y antes del print loop.
 
-Para verlo con GDB primero pondremos un breakpoint en `0x7c00`, donde la BIOS carga el MBR. Y lo ejecutaremos hasta este breakpoint con `continue`.
+Para verlo lanzaremos dos terminales, en una tendremos QEMU pausado, y en la otra ejecutaremos GDB. Pero para saber donde poner el breakpoint tenemos que calcular la dirección. Para esto utilizaremos la herrmienta `nm` que nos mostrará las direcciones:
 
-Hay que cambiar a la arquitecturra de 32 bits para cuando entremos a modo protegido con `set architecture i386`.
+![inicio-y-nm](/trabajo3/img/incio-escritura-en-solo-lectura.png)
 
-Y para poner un breakpoint en la instrucción inválida tendríamos que calcular la dirección. Una forma más fácil es poner el breakpoint en `protected_mode` y avanzar con single instruction hasta llegar al mov que escribe. Hace `break *protected_mode`.
+`nm` es una herramiento del paquete **binutils** (el mismo que tiene `objdump`, `ld`, `as`) que lista los **símbolos** contenidos en un archivo u objeto ejecutable. Un símbolo es un nombre con una dirección asociada: etiquetas de funciones, variables globales, *etiquetas de ensamblador*, constantes, etc. 
+En nuestro caso lo usamos para encontrar el offset de `protected_mode` dentro de `.o`, porque el linker coloca todo a partir de `0x7c00`, pero el `.o` tiene las direcciones relativas a cero. Con `nm` vemos que `protected_mode` está en offset `0x3f`, y sabiendo que la BIOS carga el código en `0x7c00`, calculamos que en memoria real va a estar en `0x7c3f`, y ahí es donde pondremos el breakpoint.
 
-Para ver los registros usamos `info registers`.
+La salida de `nm` también indica el tipo. El tipo `t` indica que el símbolo está en la sección .`text` (código). Otros tipos comunes son `d` para `.data`, `b` para `.bss` y a para símbolos absolutos como `CODE_SEG` y `DATA_SEG`.
 
+Vamos a ejecutar tres `si` seguidos de `info registers`:
 
+![](/trabajo3/img/gdb-wInRO1.png)
+![](/trabajo3/img/gdb-wInRO2.png)
+![](/trabajo3/img/gdb-wInRO3.png)
+![](/trabajo3/img/gdb-wInRO4.png)
+
+`info registers` da mucha información, pero nos centramos en lo siguiente:
+- `RIP`: que instrucción está por ejecutarse (la dirección).
+- `CS`, `DS`, `SS`, `ES`, `FS`, `GS`: los selectores de segmento.
+- `RAX`: donde esta el valor que vamos a intentar escribir.
+- `CR0`: para confirmar que PE está activo (modo protegido).
+
+Analizando lo obtenido en estas primeras tres iteraciones:
+
+Al entrar a `protected_mode` (`0x7c3f`):
+
+```
+cs  = 0x8   ← CODE_SEG, correcto, cargado por el far jump
+ds  = 0x0   ← todavía sin cargar
+cr0 = 0x11  ← bit PE activo, estamos en modo protegido 
+```
+
+Después del primer `si` (`0x7c43`):
+```
+rax = 0x10  ← mov $DATA_SEG, %ax ejecutado, AX tiene el selector
+ds  = 0x0   ← todavía no se cargó DS
+```
+
+Después del siguiente `si` (`0x7c45`):
+```
+ds  = 0x10  ← mov %ax, %ds ejecutado, DS ya tiene DATA_SEG 
+```
+Para avanzar hasta la instrucción `mov %al, (%rdi)` que es la escritura ilegal, hacemos `disassemble $rip, +30` para saber las instrucciones que viene:
+
+![](/trabajo3/img/prox-instruc.png)
+
+La instrucción problemática es:
+
+```
+0x7c4f:  mov %al,(%rdi)   <- acá ocurre la #GP
+```
+
+Si actualmente estamos en `0x7c45`, necesitamos hacer 4 `si` para llegar justo antes de esa instrucción:
+
+![](/trabajo3/img/salto-RIP.png)
+
+Ocurrió algo interesante y distinto a lo esperado pero igual de válido. La #GP ya se disparó, pero no donde esperábamos. Ocurrió en `0x7c4b` que es el `mov %eax,%ss`, no en la escritura explícita. El RIP saltó a `0xe05b` que es la zona de ROM del BIOS de QEMU, lo que indica que ocurrió el triple fault y el procesador se reseteó.
+
+El procesador rechazó cargar el selector de datos en SS porque SS siempre debe apuntar a un segmento escribible. Es una restricción de la arquitectura x86: no tiene sentido tener una pila en un segmento de solo lectura porque PUSH y POP necesitan escribir. El procesador lo detecta en el momento de cargar el selector, antes incluso de intentar cualquier escritura.
+
+Haciendo `info registers` justo despues que salte a esta dirección vemos que:
+
+Antes de la #GP (cuando RIP estaba en 0x7c4b):
+```
+cr0 = 0x11        -> bit PE activo, estábamos en modo protegido
+cs  = 0x8         -> CODE_SEG
+ds  = 0x10        -> DATA_SEG (solo lectura)
+rip = 0x7c4b      -> apuntando a nuestro código
+```
+
+Después del triple fault (RIP en 0xe05b):
+
+```
+cr0 = 0x60000010  -> PE apagado (bit 0 = 0), volvió a modo real
+cs  = 0xf000      -> segmento de ROM del BIOS
+rip = 0xe05b      -> dentro de la ROM del BIOS
+ds  = 0x0         -> todos los segmentos reseteados
+ss  = 0x0
+rax = 0x0         -> todos los registros generales reseteados
+```
+
+`CR0` pasó de `0x11` a `0x60000010`: el bit `PE` (bit 0) se apagó. El procesador salió de modo protegido y volvió a modo real como consecuencia del triple fault. Eso confirma el reset completo.
+
+`CS:RIP` pasó a `0xf000:0xe05b`: esta es la dirección de reset del procesador x86 (0xFFFF0 en modo real), que es donde está el vector de reset de SeaBIOS. El procesador reinició desde cero como si acabara de encenderse.
+
+En conclusión, al intentar cargar el selector de solo lectura en SS, el procesador generó una #GP. Sin IDT configurada, escaló a #DF y luego a triple fault, lo que se evidencia en GDB por el salto del RIP a la ROM del BIOS y el bit PE de CR0 apagándose, indicando que el procesador se reseteó completamente y abandonó el modo protegido.
 
 ### En modo protegido, ¿Con qué valor se cargan los registros de segmento ? ¿Por qué?
 
