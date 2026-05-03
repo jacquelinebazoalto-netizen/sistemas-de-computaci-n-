@@ -26,3 +26,18 @@ Comando:
 ## Footprinting de Memoria y Hardware
 ## En el mapa de memoria (memmap), existen regiones marcadas como RuntimeServicesCode. 
 ## ¿Por qué estas áreas son un objetivo principal para los desarrolladores de malware (Bootkits)?
+
+
+
+## Trabajo Práctico 2: Desarrollo, compilación y análisis de seguridad
+Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar cómo un descompilador interpreta opcodes a nivel de firmware.
+
+## ¿Por qué utilizamos SystemTable->ConOut->OutputString en lugar de la función printf de C?
+
+## Análisis de Metadatos y Decompilación
+
+## En el pseudocódigo de Ghidra, la condición 0xCC suele aparecer como -52. ¿A qué se debe este fenómeno y por qué importa en ciberseguridad?
+
+
+## Trabajo Práctico 3: Ejecución en Hardware Físico (Bare Metal)
+Trasladar el binario compilado a una computadora real (ej. Lenovo T450) sorteando las restricciones del Secure Boot
