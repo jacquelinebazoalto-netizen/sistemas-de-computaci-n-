@@ -33,6 +33,7 @@ Las regiones de memoria marcadas como RuntimeServicesCode son un objetivo princi
 
 ## Trabajo Práctico 2: Desarrollo, compilación y análisis de seguridad
 Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar cómo un descompilador interpreta opcodes a nivel de firmware.
+![call-graph](/trabajo3/img/jff.png)
 
 ## ¿Por qué utilizamos SystemTable->ConOut->OutputString en lugar de la función printf de C?
 Se utiliza la función SystemTable->ConOut->OutputString en lugar de printf porque en el entorno UEFI no existe un sistema operativo ni las bibliotecas estándar del lenguaje C, como la libc. La función printf depende de estas bibliotecas, por lo que no está disponible en este contexto. En su lugar, UEFI proporciona sus propias interfaces para entrada y salida, siendo OutputString el método adecuado para mostrar texto en pantalla dentro de este entorno de firmware.
