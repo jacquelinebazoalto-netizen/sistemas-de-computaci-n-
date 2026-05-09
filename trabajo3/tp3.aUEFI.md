@@ -36,7 +36,10 @@ Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar c
 
 
 ![call-graph](/trabajo3/img/jff.png)
-
+![call-graph](/trabajo3/img/jff5.png)
+![call-graph](/trabajo3/img/jff2.png)
+![call-graph](/trabajo3/img/jff3.png)
+![call-graph](/trabajo3/img/jff4.png)
 
 
 ## ¿Por qué utilizamos SystemTable->ConOut->OutputString en lugar de la función printf de C?
