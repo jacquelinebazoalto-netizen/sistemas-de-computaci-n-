@@ -40,7 +40,7 @@ Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar c
 ![call-graph](/trabajo3/img/jff2.png)
 
 
-Aplicacion UEFI funcionando 
+Aplicacion EFI funcionando 
 
 
 ![call-graph](/trabajo3/img/jff3.png)
