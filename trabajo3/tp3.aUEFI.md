@@ -57,7 +57,27 @@ El valor 0xCC aparece como -52 en el pseudocódigo de Ghidra debido a la interpr
 
 ## Trabajo Práctico 3: Ejecución en Hardware Físico (Bare Metal)
 Trasladar el binario compilado a una computadora real (ej. Lenovo T450) sorteando las restricciones del Secure Boot
+Primero se convierte un pendrive en un dispositivo booteble UEFI
+_Se usa FAT32
+_Se crea /EFI/BOOT
+
+![call-graph](/trabajo3/img/jff9.png)
+
+Se uso una Lenovo para el siguiente procedimiento:
+Ejecucion en Bare metal 
+Secure Boot implementa una cadena de confianza criptográfica que impide la ejecución de binarios EFI no firmados. Como la aplicación desarrollada no posee una firma válida reconocida por el firmware, fue necesario deshabilitar esta característica para permitir su ejecución en bare metal.
 ![call-graph](/trabajo3/img/jff6.png)
+Una vez eecutado se puede observar que .efi corre 
 ![call-graph](/trabajo3/img/jff7.png)
 ![call-graph](/trabajo3/img/jff8.png)
+se logró ejecutar una aplicación UEFI nativa sobre hardware físico, comprobando el funcionamiento del firmware como entorno pre-sistema operativo. Además, se observó el rol del Secure Boot como mecanismo de seguridad basado en firmas digitales y cómo la UEFI Shell permite interactuar directamente con los servicios del firmware antes de la carga del sistema operativo.
+El mensaje es:iniciando analisis de seguridad ...Breakpoint estatico alcanzado"
+
+## Depuración de gdb
+![call-graph](/trabajo3/img/jff9.png)
+![call-graph](/trabajo3/img/jff10.png)
+![call-graph](/trabajo3/img/jff11.png)
+![call-graph](/trabajo3/img/jff12.png)
+![call-graph](/trabajo3/img/jff13.png)
+
 
