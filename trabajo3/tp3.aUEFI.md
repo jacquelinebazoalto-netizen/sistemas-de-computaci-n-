@@ -79,8 +79,30 @@ En la UEFI se eecutara la aplicacion.efi
 ![call-graph](/trabajo3/img/jff10.png)
 Estado de la CPU: El programa se detuvo en la dirección de memoria 0x000000001ed0d0d1. Esta es la ubicación exacta donde el firmware UEFI cargó tu código.
 ​La Pila (Stack): Los valores de RBP y RSP muestran que la pila de memoria está trabajando en la zona de los 0x1fe.... La diferencia entre ellos es el espacio que está usando tu función para sus variables.
+
+## Ver el 0XCC en la memoria 
+Para ello se conecta Ghidra al GDB de QEMU.Se inspecionaran los registros memoria y stack
 ![call-graph](/trabajo3/img/jff11.png)
 ![call-graph](/trabajo3/img/jff12.png)
 ![call-graph](/trabajo3/img/jff13.png)
+Se obtuvo el 0XCC pero que significa 
+
+## Análisis de la Interrupción de Software (Breakpoint)
+​1. El hallazgo en Ghidra (Análisis Estático)
+​Durante el análisis del binario aplicacion.efi en Ghidra, se observó que la variable code contenía el valor decimal -52.
+​Explicación: Este valor es una interpretación del descompilador. Al tratarse de un dato de 8 bits (un byte), el valor hexadecimal 0xCC es interpretado como -52 en el sistema de complemento a dos (números con signo).
+​2. Verificación en Memoria (Análisis Dinámico)
+​Al ejecutar el programa en QEMU y conectar GDB, se utilizó el comando x/1bx $rbp-0x1 para inspeccionar la dirección de memoria exacta donde se alojaba dicha variable.
+​Resultado: El valor obtenido fue 0xCC.
+​Significado técnico: El valor 0xCC corresponde a la instrucción de ensamblador INT 3.
+​3. Función de la instrucción INT 3
+​La instrucción INT 3 es una interrupción de software diseñada específicamente para los depuradores (debuggers).
+​Cuando la CPU encuentra este byte, detiene la ejecución del programa y transfiere el control al depurador (en este caso, GDB).
+​Esto permitió "congelar" la aplicación justo después del mensaje "Iniciando analisis de seguridad..." para poder inspeccionar los registros.
+
+
+## Conclusión 
+​La utilización de un breakpoint estático (0xCC) es una técnica fundamental en la ingeniería inversa para analizar el comportamiento de un programa en tiempo de ejecución. En este trabajo práctico, se demostró la correspondencia exacta entre el byte cargado en el código fuente, su representación en herramientas de análisis estático (Ghidra) y su ejecución real en la arquitectura x86_64.
+
 
 
