@@ -74,8 +74,11 @@ se logró ejecutar una aplicación UEFI nativa sobre hardware físico, comproban
 El mensaje es:iniciando analisis de seguridad ...Breakpoint estatico alcanzado"
 
 ## Depuración de gdb
-![call-graph](/trabajo3/img/jff9.png)
+Iniciar QUEMU 
+En la UEFI se eecutara la aplicacion.efi
 ![call-graph](/trabajo3/img/jff10.png)
+Estado de la CPU: El programa se detuvo en la dirección de memoria 0x000000001ed0d0d1. Esta es la ubicación exacta donde el firmware UEFI cargó tu código.
+​La Pila (Stack): Los valores de RBP y RSP muestran que la pila de memoria está trabajando en la zona de los 0x1fe.... La diferencia entre ellos es el espacio que está usando tu función para sus variables.
 ![call-graph](/trabajo3/img/jff11.png)
 ![call-graph](/trabajo3/img/jff12.png)
 ![call-graph](/trabajo3/img/jff13.png)
