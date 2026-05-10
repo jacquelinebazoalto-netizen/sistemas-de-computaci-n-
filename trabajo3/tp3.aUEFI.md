@@ -34,6 +34,19 @@ Las regiones de memoria marcadas como RuntimeServicesCode son un objetivo princi
 ## Trabajo Práctico 2: Desarrollo, compilación y análisis de seguridad
 Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar cómo un descompilador interpreta opcodes a nivel de firmware.
 
+
+![call-graph](/trabajo3/img/jff.png)
+![call-graph](/trabajo3/img/jff5.png)
+![call-graph](/trabajo3/img/jff2.png)
+
+
+Aplicacion EFI funcionando 
+
+
+![call-graph](/trabajo3/img/jff3.png)
+![call-graph](/trabajo3/img/jff4.png)
+
+
 ## ¿Por qué utilizamos SystemTable->ConOut->OutputString en lugar de la función printf de C?
 Se utiliza la función SystemTable->ConOut->OutputString en lugar de printf porque en el entorno UEFI no existe un sistema operativo ni las bibliotecas estándar del lenguaje C, como la libc. La función printf depende de estas bibliotecas, por lo que no está disponible en este contexto. En su lugar, UEFI proporciona sus propias interfaces para entrada y salida, siendo OutputString el método adecuado para mostrar texto en pantalla dentro de este entorno de firmware.
 
@@ -44,3 +57,51 @@ El valor 0xCC aparece como -52 en el pseudocódigo de Ghidra debido a la interpr
 
 ## Trabajo Práctico 3: Ejecución en Hardware Físico (Bare Metal)
 Trasladar el binario compilado a una computadora real (ej. Lenovo T450) sorteando las restricciones del Secure Boot
+Primero se convierte un pendrive en un dispositivo booteble UEFI
+_Se usa FAT32
+_Se crea /EFI/BOOT
+
+![call-graph](/trabajo3/img/jff9.png)
+
+Se uso una Lenovo para el siguiente procedimiento:
+Ejecucion en Bare metal 
+Secure Boot implementa una cadena de confianza criptográfica que impide la ejecución de binarios EFI no firmados. Como la aplicación desarrollada no posee una firma válida reconocida por el firmware, fue necesario deshabilitar esta característica para permitir su ejecución en bare metal.
+![call-graph](/trabajo3/img/jff6.png)
+Una vez eecutado se puede observar que .efi corre 
+![call-graph](/trabajo3/img/jff7.png)
+![call-graph](/trabajo3/img/jff8.png)
+se logró ejecutar una aplicación UEFI nativa sobre hardware físico, comprobando el funcionamiento del firmware como entorno pre-sistema operativo. Además, se observó el rol del Secure Boot como mecanismo de seguridad basado en firmas digitales y cómo la UEFI Shell permite interactuar directamente con los servicios del firmware antes de la carga del sistema operativo.
+El mensaje es:iniciando analisis de seguridad ...Breakpoint estatico alcanzado"
+
+## Depuración de gdb
+Iniciar QUEMU 
+En la UEFI se eecutara la aplicacion.efi
+![call-graph](/trabajo3/img/jff10.png)
+Estado de la CPU: El programa se detuvo en la dirección de memoria 0x000000001ed0d0d1. Esta es la ubicación exacta donde el firmware UEFI cargó tu código.
+​La Pila (Stack): Los valores de RBP y RSP muestran que la pila de memoria está trabajando en la zona de los 0x1fe.... La diferencia entre ellos es el espacio que está usando tu función para sus variables.
+
+## Ver el 0XCC en la memoria 
+Para ello se conecta Ghidra al GDB de QEMU.Se inspecionaran los registros memoria y stack
+![call-graph](/trabajo3/img/jff11.png)
+![call-graph](/trabajo3/img/jff12.png)
+![call-graph](/trabajo3/img/jff13.png)
+Se obtuvo el 0XCC pero que significa 
+
+## Análisis de la Interrupción de Software (Breakpoint)
+​1. El hallazgo en Ghidra (Análisis Estático)
+​Durante el análisis del binario aplicacion.efi en Ghidra, se observó que la variable code contenía el valor decimal -52.
+​Explicación: Este valor es una interpretación del descompilador. Al tratarse de un dato de 8 bits (un byte), el valor hexadecimal 0xCC es interpretado como -52 en el sistema de complemento a dos (números con signo).
+​2. Verificación en Memoria (Análisis Dinámico)
+​Al ejecutar el programa en QEMU y conectar GDB, se utilizó el comando x/1bx $rbp-0x1 para inspeccionar la dirección de memoria exacta donde se alojaba dicha variable.
+​Resultado: El valor obtenido fue 0xCC.
+​Significado técnico: El valor 0xCC corresponde a la instrucción de ensamblador INT 3.
+​3. Función de la instrucción INT 3
+​La instrucción INT 3 es una interrupción de software diseñada específicamente para los depuradores (debuggers).
+​Cuando la CPU encuentra este byte, detiene la ejecución del programa y transfiere el control al depurador (en este caso, GDB).
+​Esto permitió "congelar" la aplicación justo después del mensaje "Iniciando analisis de seguridad..." para poder inspeccionar los registros.
+
+
+## Conclusión 
+​La utilización de un breakpoint estático (0xCC) es una técnica fundamental en la ingeniería inversa para analizar el comportamiento de un programa en tiempo de ejecución. En este trabajo práctico, se demostró la correspondencia exacta entre el byte cargado en el código fuente, su representación en herramientas de análisis estático (Ghidra) y su ejecución real en la arquitectura x86_64.
+
+
