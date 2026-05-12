@@ -2,6 +2,17 @@
 
 ## Trabajo Práctico 1: Exploración del entorno UEFI y la Shell
 
+### 1.1 Arranque del entorno UEFI
+
+Para el arranque del entorno UEFI utilizamos el siguiente comando 
+`qemu-system-x86_64 -m 512 -bios /usr/share/ovmf/OVMF.fd -net none`
+Este comando inicia una máquina virtual mediante QEMU utilizando firmware UEFI proporcionado por OVMF.
+
+![Inicialización UEFI](img/parte1/1.1 inicializacion.png)
+
+### 1.2 Exploracion de Dispositivos 
+### 1.3 Analisis de variables globales
+### 1.1 Arranque del entorno UEFI
 ### ¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?
 
 El modelo de handles y protocolos de UEFI presenta ventajas significativas en términos de compatibilidad y seguridad frente al enfoque tradicional del BIOS.
