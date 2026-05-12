@@ -8,7 +8,7 @@ Para el arranque del entorno UEFI utilizamos el siguiente comando
 `qemu-system-x86_64 -m 512 -bios /usr/share/ovmf/OVMF.fd -net none`
 Este comando inicia una máquina virtual mediante QEMU utilizando firmware UEFI proporcionado por OVMF.
 
-![Inicialización UEFI](img/parte1/1.1 inicializacion.png)
+![Inicialización UEFI](img/parte1/1.1_Inicializacion.png)
 
 ### 1.2 Exploracion de Dispositivos 
 ### 1.3 Analisis de variables globales
