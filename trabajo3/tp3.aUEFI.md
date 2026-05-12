@@ -11,8 +11,44 @@ Este comando inicia una máquina virtual mediante QEMU utilizando firmware UEFI 
 ![Inicialización UEFI](img/parte1/1.1_Inicializacion.png)
 
 ### 1.2 Exploracion de Dispositivos 
+
+ Una vez inicializado el entorno UEFI utilizamos el comando `map` que muestra los dispositivos detectados y los sistemas de archivos disponibles en el entorno UEFI.
+
+![Inicialización UEFI](img/parte1/1.2_comando_map.png)
+
+Mostramos los Device Handles y protocolos registrados por UEFI con `dh -b`.
+
+![Inicialización UEFI](img/parte1/1.2_comando_db0.png)
+![Inicialización UEFI](img/parte1/1.2_comando_db.png)
+
 ### 1.3 Analisis de variables globales
-### 1.1 Arranque del entorno UEFI
+
+Las variables globales de UEFI constituyen uno de los mecanismos fundamentales utilizados por el firmware para almacenar configuraciones persistentes del sistema. Estas variables se guardan en memoria no volátil (NVRAM), lo que permite conservar información incluso después de apagar el equipo.
+
+Con `dmpstore` mostraremos las variables almacenadas en la memoria no volátil NVRAM.
+
+![Inicialización UEFI](img/parte1/1.3_comando_dmpstore.png)
+
+y por ultimo creamos una variable llamada TestSeguridad con el contenido "Hola UEFI" para verificar el funcionamiento de las variables del entorno.
+
+![Inicialización UEFI](img/parte1/1.3_comando_test_uefi.png)
+
+### 1.4 Footprinting de Memoria y Hardware
+
+En esta sección se utilizaron herramientas de la UEFI Shell para analizar el mapa de memoria, los dispositivos PCI detectados y los drivers cargados por el firmware. Esto permitió observar cómo UEFI abstrae y organiza los recursos de hardware del sistema, proporcionando un entorno de inicialización mucho más completo que el BIOS tradicional.
+
+mostramos el mapa de memoria utilizado por UEFI con `memmap`.
+
+![Inicialización UEFI](img/parte1/1.4_comando_memmap.png)
+
+por ultimo mostramos los dispositivos conectados al bus PCI y los drivers cargados por el firmware UEFI.
+
+![Inicialización UEFI](img/parte1/1.4_comando_pci.png)
+
+
+![Inicialización UEFI](img/parte1/1.4_comando_drivers.png)
+
+
 ### ¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?
 
 El modelo de handles y protocolos de UEFI presenta ventajas significativas en términos de compatibilidad y seguridad frente al enfoque tradicional del BIOS.
