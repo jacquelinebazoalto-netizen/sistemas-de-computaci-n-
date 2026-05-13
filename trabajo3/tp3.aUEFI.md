@@ -1,9 +1,12 @@
 ## Interfaz de Firmware Extensible Unificada (UEFI) 
 
-La Interfaz de Firmware Extensible Unificada (UEFI) es la infraestructura de firmware estándar de la industria diseñada para reemplazar al tradicional Legacy BIOS 1. A diferencia de las limitaciones históricas del BIOS —que dependía de hardware heredado (como el timer 8254 o el controlador de interrupciones 8259), operaba en modo de 16 bits y tenía un límite estricto de 1MB de memoria— UEFI ofrece una arquitectura moderna, modular y compatible con procesadores de 32 bits, 64 bits (x64, ARM, Itanium) 2, 1, 3.
+La **Interfaz de Firmware Extensible Unificada (UEFI)** es la infraestructura de firmware estándar de la industria diseñada para reemplazar al tradicional Legacy BIOS 1. A diferencia de las limitaciones históricas del BIOS —que dependía de hardware heredado (como el timer 8254 o el controlador de interrupciones 8259), operaba en modo de 16 bits y tenía un límite estricto de 1MB de memoria— UEFI ofrece una arquitectura moderna, modular y compatible con procesadores de 32 bits, 64 bits (x64, ARM, Itanium) 2, 1, 3.
+
 Es fundamental distinguir entre dos conceptos arquitectónicos que trabajan en conjunto 4, 5:
-UEFI: Es puramente una especificación de interfaz. Define las APIs, estructuras de datos y el entorno pre-sistema operativo (pre-OS) mediante el cual interactúan el firmware, los componentes de hardware y los cargadores del sistema operativo (OS loaders) 4, 6.
-PI (Platform Initialization): Es la arquitectura interna del firmware. Define cómo se construye la plataforma desde el momento del restablecimiento (reset) del hardware, estableciendo fases de control bien definidas hasta que se crea el entorno UEFI para el OS 5.
+
+**UEFI**: Es puramente una especificación de interfaz. Define las APIs, estructuras de datos y el entorno pre-sistema operativo (pre-OS) mediante el cual interactúan el firmware, los componentes de hardware y los cargadores del sistema operativo (OS loaders) 4, 6.
+
+**PI (Platform Initialization)**: Es la arquitectura interna del firmware. Define cómo se construye la plataforma desde el momento del restablecimiento (reset) del hardware, estableciendo fases de control bien definidas hasta que se crea el entorno UEFI para el OS 5.
 
 ## Entorno UEFI, Desarrollo y Análisis de Seguridad
 
@@ -17,22 +20,27 @@ Comando:
 ## Exploración de Dispositivos (Handles y Protocolos):
 
 
-##  Al ejecutar el comando map y dh, vemos protocolos e identificadores en lugar de puertos de hardware fijos.
-## ¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?
+###  Al ejecutar el comando map y dh, vemos protocolos e identificadores en lugar de puertos de hardware fijos.
+**¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?**
+
 El modelo de UEFI basado en handles y protocolos ofrece una ventaja significativa frente al BIOS tradicional, ya que introduce una capa de abstracción sobre el hardware. En lugar de acceder directamente a direcciones físicas o puertos específicos, el sistema interactúa mediante interfaces estandarizadas. Esto mejora la compatibilidad, ya que un mismo código puede ejecutarse en distintos dispositivos sin modificaciones, y también incrementa la seguridad, al evitar accesos directos al hardware que podrían ser explotados por software malicioso. Además, este enfoque favorece la modularidad y la extensibilidad del sistema
 
 ## Análisis de Variables Globales (NVRAM)
-## Observando las variables Boot#### y BootOrder, ¿cómo determina el Boot Manager la secuencia de arranque?
-El Boot Manager de UEFI determina la secuencia de arranque utilizando variables almacenadas en memoria no volátil (NVRAM), principalmente Boot#### y BootOrder. Cada variable Boot#### representa una opción de arranque específica, como un disco o dispositivo USB, mientras que BootOrder define el orden en que estas opciones deben intentarse. Durante el proceso de arranque, el sistema recorre la lista indicada en BootOrder y prueba cada entrada en ese orden hasta encontrar una opción válida que permita iniciar el sistema.
+**Observando las variables Boot#### y BootOrder, ¿cómo determina el Boot Manager la secuencia de arranque?**
+
+El Boot Manager de UEFI determina la secuencia de arranque utilizando variables almacenadas en memoria no volátil (NVRAM), principalmente `Boot####` y `BootOrder`. Cada variable `Boot####` representa una opción de arranque específica, como un disco o dispositivo USB, mientras que BootOrder define el orden en que estas opciones deben intentarse. Durante el proceso de arranque, el sistema recorre la lista indicada en `BootOrder` y prueba cada entrada en ese orden hasta encontrar una opción válida que permita iniciar el sistema.
 
 ## Footprinting de Memoria y Hardware
-## En el mapa de memoria (memmap), existen regiones marcadas como RuntimeServicesCode. 
-## ¿Por qué estas áreas son un objetivo principal para los desarrolladores de malware (Bootkits)?
-Las regiones de memoria marcadas como RuntimeServicesCode son un objetivo principal para malware como los bootkits debido a que permanecen accesibles incluso después de que el sistema operativo ha iniciado. Esto permite que código malicioso alojado en estas áreas mantenga su ejecución con altos privilegios, logrando persistencia a bajo nivel. Además, al formar parte del entorno de firmware, estas regiones son más difíciles de inspeccionar y detectar por herramientas de seguridad tradicionales, lo que las convierte en un vector especialmente peligroso.
+
+**En el mapa de memoria (memmap), existen regiones marcadas como RuntimeServicesCode. **
+
+**¿Por qué estas áreas son un objetivo principal para los desarrolladores de malware (Bootkits)?**
+
+Las regiones de memoria marcadas como `RuntimeServicesCode` son un objetivo principal para malware como los bootkits debido a que permanecen accesibles incluso después de que el sistema operativo ha iniciado. Esto permite que código malicioso alojado en estas áreas mantenga su ejecución con altos privilegios, logrando persistencia a bajo nivel. Además, al formar parte del entorno de firmware, estas regiones son más difíciles de inspeccionar y detectar por herramientas de seguridad tradicionales, lo que las convierte en un vector especialmente peligroso.
 
 
 ## Trabajo Práctico 2: Desarrollo, compilación y análisis de seguridad
-Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar cómo un descompilador interpreta opcodes a nivel de firmware.
+**Crear una aplicación nativa UEFI en C, entender el formato PE/COFF y analizar cómo un descompilador interpreta opcodes a nivel de firmware.**
 
 
 ![call-graph](/trabajo3/img/jff.png)
@@ -47,61 +55,79 @@ Aplicacion EFI funcionando
 ![call-graph](/trabajo3/img/jff4.png)
 
 
-## ¿Por qué utilizamos SystemTable->ConOut->OutputString en lugar de la función printf de C?
-Se utiliza la función SystemTable->ConOut->OutputString en lugar de printf porque en el entorno UEFI no existe un sistema operativo ni las bibliotecas estándar del lenguaje C, como la libc. La función printf depende de estas bibliotecas, por lo que no está disponible en este contexto. En su lugar, UEFI proporciona sus propias interfaces para entrada y salida, siendo OutputString el método adecuado para mostrar texto en pantalla dentro de este entorno de firmware.
+## ¿Por qué utilizamos `SystemTable->ConOut->OutputString` en lugar de la función `printf` de C?
+Se utiliza la función `SystemTable->ConOut->OutputString` en lugar de `printf` porque en el entorno UEFI no existe un sistema operativo ni las bibliotecas estándar del lenguaje C, como la `libc`. La función `printf` depende de estas bibliotecas, por lo que no está disponible en este contexto. En su lugar, UEFI proporciona sus propias interfaces para entrada y salida, siendo `OutputString` el método adecuado para mostrar texto en pantalla dentro de este entorno de firmware.
 
 ## Análisis de Metadatos y Decompilación
 
-## En el pseudocódigo de Ghidra, la condición 0xCC suele aparecer como -52. ¿A qué se debe este fenómeno y por qué importa en ciberseguridad?
-El valor 0xCC aparece como -52 en el pseudocódigo de Ghidra debido a la interpretación del dato como un entero con signo de 8 bits (signed char). En hexadecimal, 0xCC equivale a 204 en decimal sin signo, pero al interpretarse con signo mediante complemento a dos, se representa como -52. Este fenómeno es relevante en ciberseguridad, ya que la interpretación de los datos puede variar según el contexto, lo que puede ser utilizado para ocultar instrucciones o comportamientos maliciosos. Comprender estas diferencias es fundamental para el análisis correcto de binarios y la detección de código potencialmente dañino.
+**En el pseudocódigo de Ghidra, la condición 0xCC suele aparecer como -52. ¿A qué se debe este fenómeno y por qué importa en ciberseguridad?**
+
+El valor `0xCC` aparece como `-52` en el pseudocódigo de Ghidra debido a la interpretación del dato como un entero con signo de 8 bits (`signed char`). En hexadecimal, `0xCC` equivale a `204` en decimal sin signo, pero al interpretarse con signo mediante complemento a dos, se representa como -52. Este fenómeno es relevante en ciberseguridad, ya que la interpretación de los datos puede variar según el contexto, lo que puede ser utilizado para ocultar instrucciones o comportamientos maliciosos. Comprender estas diferencias es fundamental para el análisis correcto de binarios y la detección de código potencialmente dañino.
 
 ## Trabajo Práctico 3: Ejecución en Hardware Físico (Bare Metal)
+
 Trasladar el binario compilado a una computadora real (ej. Lenovo T450) sorteando las restricciones del Secure Boot
 Primero se convierte un pendrive en un dispositivo booteble UEFI
-_Se usa FAT32
-_Se crea /EFI/BOOT
+- Se usa FAT32
+- Se crea /EFI/BOOT
 
 ![call-graph](/trabajo3/img/jff9.png)
 
 Se uso una Lenovo para el siguiente procedimiento:
+
 Ejecucion en Bare metal 
+
 Secure Boot implementa una cadena de confianza criptográfica que impide la ejecución de binarios EFI no firmados. Como la aplicación desarrollada no posee una firma válida reconocida por el firmware, fue necesario deshabilitar esta característica para permitir su ejecución en bare metal.
+
 ![call-graph](/trabajo3/img/jff6.png)
-Una vez eecutado se puede observar que .efi corre 
+
+Una vez ejecutado se puede observar que .efi corre 
+
 ![call-graph](/trabajo3/img/jff7.png)
 ![call-graph](/trabajo3/img/jff8.png)
-se logró ejecutar una aplicación UEFI nativa sobre hardware físico, comprobando el funcionamiento del firmware como entorno pre-sistema operativo. Además, se observó el rol del Secure Boot como mecanismo de seguridad basado en firmas digitales y cómo la UEFI Shell permite interactuar directamente con los servicios del firmware antes de la carga del sistema operativo.
-El mensaje es:iniciando analisis de seguridad ...Breakpoint estatico alcanzado"
+
+Se logró ejecutar una aplicación UEFI nativa sobre hardware físico, comprobando el funcionamiento del firmware como entorno pre-sistema operativo. Además, se observó el rol del Secure Boot como mecanismo de seguridad basado en firmas digitales y cómo la UEFI Shell permite interactuar directamente con los servicios del firmware antes de la carga del sistema operativo.
+El mensaje es: `iniciando analisis de seguridad ...Breakpoint estatico alcanzado.`
 
 ## Depuración de gdb
 Iniciar QUEMU 
-En la UEFI se eecutara la aplicacion.efi
-![call-graph](/trabajo3/img/jff10.png)
-Estado de la CPU: El programa se detuvo en la dirección de memoria 0x000000001ed0d0d1. Esta es la ubicación exacta donde el firmware UEFI cargó tu código.
-​La Pila (Stack): Los valores de RBP y RSP muestran que la pila de memoria está trabajando en la zona de los 0x1fe.... La diferencia entre ellos es el espacio que está usando tu función para sus variables.
 
-## Ver el 0XCC en la memoria 
-Para ello se conecta Ghidra al GDB de QEMU.Se inspecionaran los registros memoria y stack
+En la UEFI se ejecutara la aplicacion.efi
+![call-graph](/trabajo3/img/jff10.png)
+
+Estado de la CPU: El programa se detuvo en la dirección de memoria `0x000000001ed0d0d1`. Esta es la ubicación exacta donde el firmware UEFI cargó el código.
+
+La Pila (`Stack`): Los valores de `RBP` y `RSP` muestran que la pila de memoria está trabajando en la zona de los `0x1fe`.... La diferencia entre ellos es el espacio que está usando la función para sus variables.
+
+## Ver el `0xCC` en la memoria 
+Para ello se conecta Ghidra al GDB de QEMU. Se inspecionaran los registros memoria y stack
 ![call-graph](/trabajo3/img/jff11.png)
 ![call-graph](/trabajo3/img/jff12.png)
 ![call-graph](/trabajo3/img/jff13.png)
-Se obtuvo el 0XCC pero que significa 
+
+Se obtuvo el `0xCC` pero, ¿qué significa? 
 
 ## Análisis de la Interrupción de Software (Breakpoint)
-​1. El hallazgo en Ghidra (Análisis Estático)
-​Durante el análisis del binario aplicacion.efi en Ghidra, se observó que la variable code contenía el valor decimal -52.
-​Explicación: Este valor es una interpretación del descompilador. Al tratarse de un dato de 8 bits (un byte), el valor hexadecimal 0xCC es interpretado como -52 en el sistema de complemento a dos (números con signo).
-​2. Verificación en Memoria (Análisis Dinámico)
-​Al ejecutar el programa en QEMU y conectar GDB, se utilizó el comando x/1bx $rbp-0x1 para inspeccionar la dirección de memoria exacta donde se alojaba dicha variable.
-​Resultado: El valor obtenido fue 0xCC.
-​Significado técnico: El valor 0xCC corresponde a la instrucción de ensamblador INT 3.
-​3. Función de la instrucción INT 3
-​La instrucción INT 3 es una interrupción de software diseñada específicamente para los depuradores (debuggers).
-​Cuando la CPU encuentra este byte, detiene la ejecución del programa y transfiere el control al depurador (en este caso, GDB).
-​Esto permitió "congelar" la aplicación justo después del mensaje "Iniciando analisis de seguridad..." para poder inspeccionar los registros.
+1. El hallazgo en Ghidra (Análisis Estático)
+
+Durante el análisis del binario aplicacion.efi en Ghidra, se observó que la variable code contenía el valor decimal -52.
+
+**Explicación**: Este valor es una interpretación del descompilador. Al tratarse de un dato de 8 bits (un byte), el valor hexadecimal 0xCC es interpretado como -52 en el sistema de complemento a dos (números con signo).
+
+2. Verificación en Memoria (Análisis Dinámico)
+
+Al ejecutar el programa en QEMU y conectar GDB, se utilizó el comando `x/1bx $rbp-0x1` para inspeccionar la dirección de memoria exacta donde se alojaba dicha variable.
+
+**Resultado**: El valor obtenido fue 0xCC.
+
+**Significado técnico**: El valor `0xCC` corresponde a la instrucción de ensamblador INT 3.
+
+3. Función de la instrucción `INT 3`
+
+La instrucción `INT 3` es una interrupción de software diseñada específicamente para los depuradores (debuggers).
+Cuando la CPU encuentra este byte, detiene la ejecución del programa y transfiere el control al depurador (en este caso, GDB).
+Esto permitió "congelar" la aplicación justo después del mensaje "Iniciando analisis de seguridad..." para poder inspeccionar los registros.
 
 
 ## Conclusión 
-​La utilización de un breakpoint estático (0xCC) es una técnica fundamental en la ingeniería inversa para analizar el comportamiento de un programa en tiempo de ejecución. En este trabajo práctico, se demostró la correspondencia exacta entre el byte cargado en el código fuente, su representación en herramientas de análisis estático (Ghidra) y su ejecución real en la arquitectura x86_64.
-
-
+La utilización de un breakpoint estático (0xCC) es una técnica fundamental en la ingeniería inversa para analizar el comportamiento de un programa en tiempo de ejecución. En este trabajo práctico, se demostró la correspondencia exacta entre el byte cargado en el código fuente, su representación en herramientas de análisis estático (Ghidra) y su ejecución real en la arquitectura x86_64.
