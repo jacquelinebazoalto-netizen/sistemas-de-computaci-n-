@@ -8,27 +8,52 @@ Es fundamental distinguir entre dos conceptos arquitectónicos que trabajan en c
 
 **PI (Platform Initialization)**: Es la arquitectura interna del firmware. Define cómo se construye la plataforma desde el momento del restablecimiento (reset) del hardware, estableciendo fases de control bien definidas hasta que se crea el entorno UEFI para el OS 5.
 
-## Entorno UEFI, Desarrollo y Análisis de Seguridad
+# Laboratorio N° 3.a: Entorno UEFI, Desarrollo y Análisis de Seguridad
 
-Objetivo General: Comprender la arquitectura de la Interfaz de Firmware Extensible Unificada (UEFI) como un entorno pre-sistema operativo, desarrollar binarios nativos, entender su formato y ejecutar rutinas tanto en entornos emulados como en hardware físico (bare metal).
+## Trabajo Práctico 1: Exploración del entorno UEFI y la Shell
 
-##  Exploración del entorno UEFI y la Shell
- Explorar cómo UEFI abstrae el hardware y gestiona la configuración antes de la carga del sistema operativo.
+Explorar cómo UEFI abstrae el hardware y gestiona la configuración antes de la carga del sistema operativo.
 
-## 1.1 Arranque en el entorno virtual
-Comando:
+### 1.1 Arranque del entorno UEFI
+
+Para el arranque del entorno UEFI utilizamos el siguiente comando 
+`qemu-system-x86_64 -m 512 -bios /usr/share/ovmf/OVMF.fd -net none`
+Este comando inicia una máquina virtual mediante QEMU utilizando firmware UEFI proporcionado por OVMF.
+
+![Inicialización UEFI](img/parte1/1.1_Inicializacion.png)
+
 ## Exploración de Dispositivos (Handles y Protocolos):
-
 
 ###  Al ejecutar el comando map y dh, vemos protocolos e identificadores en lugar de puertos de hardware fijos.
 **¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?**
 
 El modelo de UEFI basado en handles y protocolos ofrece una ventaja significativa frente al BIOS tradicional, ya que introduce una capa de abstracción sobre el hardware. En lugar de acceder directamente a direcciones físicas o puertos específicos, el sistema interactúa mediante interfaces estandarizadas. Esto mejora la compatibilidad, ya que un mismo código puede ejecutarse en distintos dispositivos sin modificaciones, y también incrementa la seguridad, al evitar accesos directos al hardware que podrían ser explotados por software malicioso. Además, este enfoque favorece la modularidad y la extensibilidad del sistema
 
+Una vez inicializado el entorno UEFI utilizamos el comando `map` que muestra los dispositivos detectados y los sistemas de archivos disponibles en el entorno UEFI.
+
+![Inicialización UEFI](img/parte1/1.2_comando_map.png)
+
+Mostramos los Device Handles y protocolos registrados por UEFI con `dh -b`.
+
+![Inicialización UEFI](img/parte1/1.2_comando_db0.png)
+![Inicialización UEFI](img/parte1/1.2_comando_db.png)
+
+
 ## Análisis de Variables Globales (NVRAM)
 **Observando las variables Boot#### y BootOrder, ¿cómo determina el Boot Manager la secuencia de arranque?**
 
 El Boot Manager de UEFI determina la secuencia de arranque utilizando variables almacenadas en memoria no volátil (NVRAM), principalmente `Boot####` y `BootOrder`. Cada variable `Boot####` representa una opción de arranque específica, como un disco o dispositivo USB, mientras que BootOrder define el orden en que estas opciones deben intentarse. Durante el proceso de arranque, el sistema recorre la lista indicada en `BootOrder` y prueba cada entrada en ese orden hasta encontrar una opción válida que permita iniciar el sistema.
+
+Las variables globales de UEFI constituyen uno de los mecanismos fundamentales utilizados por el firmware para almacenar configuraciones persistentes del sistema. Estas variables se guardan en memoria no volátil (NVRAM), lo que permite conservar información incluso después de apagar el equipo.
+
+Con `dmpstore` mostraremos las variables almacenadas en la memoria no volátil NVRAM.
+
+![Inicialización UEFI](img/parte1/1.3_comando_dmpstore.png)
+
+y por ultimo creamos una variable llamada TestSeguridad con el contenido "Hola UEFI" para verificar el funcionamiento de las variables del entorno.
+
+![Inicialización UEFI](img/parte1/1.3_comando_test_uefi.png)
+
 
 ## Footprinting de Memoria y Hardware
 
@@ -37,6 +62,45 @@ El Boot Manager de UEFI determina la secuencia de arranque utilizando variables 
 **¿Por qué estas áreas son un objetivo principal para los desarrolladores de malware (Bootkits)?**
 
 Las regiones de memoria marcadas como `RuntimeServicesCode` son un objetivo principal para malware como los bootkits debido a que permanecen accesibles incluso después de que el sistema operativo ha iniciado. Esto permite que código malicioso alojado en estas áreas mantenga su ejecución con altos privilegios, logrando persistencia a bajo nivel. Además, al formar parte del entorno de firmware, estas regiones son más difíciles de inspeccionar y detectar por herramientas de seguridad tradicionales, lo que las convierte en un vector especialmente peligroso.
+
+En esta sección se utilizaron herramientas de la UEFI Shell para analizar el mapa de memoria, los dispositivos PCI detectados y los drivers cargados por el firmware. Esto permitió observar cómo UEFI abstrae y organiza los recursos de hardware del sistema, proporcionando un entorno de inicialización mucho más completo que el BIOS tradicional.
+
+mostramos el mapa de memoria utilizado por UEFI con `memmap`.
+
+![Inicialización UEFI](img/parte1/1.4_comando_memmap.png)
+
+por ultimo mostramos los dispositivos conectados al bus PCI y los drivers cargados por el firmware UEFI.
+
+![Inicialización UEFI](img/parte1/1.4_comando_pci.png)
+
+
+![Inicialización UEFI](img/parte1/1.4_comando_drivers.png)
+
+
+### ¿Cuál es la ventaja de seguridad y compatibilidad de este modelo frente al antiguo BIOS?
+
+El modelo de handles y protocolos de UEFI presenta ventajas significativas en términos de compatibilidad y seguridad frente al enfoque tradicional del BIOS.
+
+Desde el punto de vista de la compatibilidad, este modelo permite que distintos dispositivos de hardware implementen una misma interfaz estándar a través de protocolos. Esto implica que el software no necesita conocer detalles específicos del hardware, ya que interactúa con él mediante una capa de abstracción. Como resultado, la incorporación de nuevas tecnologías no requiere modificar el software existente, lo que facilita la evolución del sistema.
+
+En cuanto a la seguridad, el modelo evita el acceso directo al hardware, eliminando la posibilidad de que aplicaciones interactúen con puertos de entrada/salida o direcciones de memoria de forma arbitraria. En su lugar, toda interacción se realiza a través de interfaces controladas por el firmware, lo que reduce la superficie de ataque y permite un mayor control sobre las operaciones realizadas.
+
+En conjunto, este enfoque mejora la robustez del sistema, facilita su mantenimiento y permite implementar mecanismos de seguridad más efectivos en etapas tempranas del arranque.
+
+### Observando las variables Boot#### y BootOrder, ¿cómo determina el Boot Manager la secuencia de arranque?
+
+El Boot Manager de UEFI determina la secuencia de arranque a partir de variables almacenadas en memoria no volátil (NVRAM), principalmente BootOrder y Boot####. La variable BootOrder contiene una lista ordenada de identificadores que establecen la prioridad de las distintas opciones de arranque disponibles en el sistema.
+
+Para cada identificador presente en BootOrder, el firmware accede a la variable Boot#### correspondiente, la cual almacena la información necesaria para localizar un archivo ejecutable en formato .efi, incluyendo su *device path*. A partir de esta información, el firmware utiliza el modelo de handles y protocolos para resolver la ubicación del archivo dentro del sistema.
+
+Si el archivo indicado existe y cumple con las políticas de seguridad establecidas, como la verificación de firma en caso de que Secure Boot esté habilitado, el Boot Manager procede a cargarlo en memoria y transferirle el control. La entrada utilizada en el arranque queda registrada en la variable BootCurrent, lo que permite identificar qué opción fue efectivamente ejecutada.
+
+En caso de que alguna entrada falle, ya sea porque el archivo no se encuentra o no supera las validaciones correspondientes, el sistema continúa con la siguiente opción definida en BootOrder. De esta manera, UEFI implementa un mecanismo de arranque flexible, configurable y más robusto que el modelo tradicional basado en BIOS.
+
+### En el mapa de memoria (memmap), existen regiones marcadas como RuntimeServicesCode. ¿Por qué estas áreas son un objetivo principal para los desarrolladores de malware (Bootkits)?
+
+Las regiones de tipo RuntimeServicesCode son especialmente sensibles desde el punto de vista de seguridad, ya que contienen funciones del firmware que continúan disponibles una vez iniciado el sistema operativo. Si un atacante logra modificar estas áreas, puede ejecutar código con privilegios elevados durante el funcionamiento normal del sistema. A esto se suma que, al pertenecer al entorno del firmware, su análisis no es habitual para las herramientas de protección tradicionales, lo que incrementa la dificultad para detectar y eliminar este tipo de amenazas.
+
 
 
 ## Trabajo Práctico 2: Desarrollo, compilación y análisis de seguridad
