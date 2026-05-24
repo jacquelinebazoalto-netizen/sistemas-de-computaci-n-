@@ -28,6 +28,10 @@ Una vez compilado el módulo del kernel, se genera un archivo con extensión .ko
 
 [![](./img/cap4.png)]()
 
+Para ver los módulos del kernel instalados:
+
+[![](./img/cap5.png)]()
+
 
 ## Crear un paquete con CheckInstall: Ejemplo con Hello World
 
