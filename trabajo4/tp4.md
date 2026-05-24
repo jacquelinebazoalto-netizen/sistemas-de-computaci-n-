@@ -66,6 +66,9 @@ Espacio de usuario o espacio del kernel.
 Espacio de datos.
 Drivers. Investigar contenido de /dev.
 
+
+## DESAFIO 2 
+
 ## 1¿Qué diferencias se pueden observar entre los dos modinfo ? 
 ## 2¿Qué divers/modulos estan cargados en sus propias pc? comparar las salidas con las computadoras de cada integrante del grupo. Expliquen las diferencias. Carguen un txt con la salida de cada integrante en el repo y pongan un diff en el informe.
 ## 3¿cuales no están cargados pero están disponibles? que pasa cuando el driver de un dispositivo no está disponible. 
