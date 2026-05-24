@@ -74,11 +74,11 @@ Los drivers son controladores que permiten la comunicación entre el sistema ope
 
 Dentro de /dev pueden encontrarse archivos como:
 
-/dev/sda → discos duros
-/dev/tty → terminales
-/dev/null → descarta información
-/dev/random → generador de números aleatorios
-/dev/video0 → cámaras web
+## /dev/sda → discos duros
+## /dev/tty → terminales
+## /dev/null → descarta información
+## /dev/random → generador de números aleatorios
+## /dev/video0 → cámaras web
 
 Gracias a esto, Linux trata muchos dispositivos como archivos, permitiendo interactuar con ellos mediante operaciones estándar de lectura y escritura.
 
