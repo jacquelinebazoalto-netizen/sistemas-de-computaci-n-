@@ -74,7 +74,7 @@ Los drivers son controladores que permiten la comunicación entre el sistema ope
 
 Dentro de /dev pueden encontrarse archivos como:
 
-## /dev/sda → discos duros
+# /dev/sda → discos duros
 ## /dev/tty → terminales
 ## /dev/null → descarta información
 ## /dev/random → generador de números aleatorios
