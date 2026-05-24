@@ -59,8 +59,72 @@ sudo dpkg -r hello-world
  
 [![](./img/cap2.png)]()
 
+## Para mejorar la seguridad del kernel, concretamente: evitando cargar módulos que no estén firmados
+Cuando trabajamos con módulos del kernel, la seguridad es un aspecto crítico. Cargar un módulo es darle acceso directo al corazón del sistema, por eso es fundamental garantizar su integridad y autenticidad. Una forma de hacerlo es mediante la firma digital de módulos.
 
+## ¿Por qué firmar un módulo?
+Firmar un módulo permite verificar que no ha sido alterado desde que fue creado. Es especialmente importante si tenés Secure Boot activado, ya que éste bloquea la carga de módulos no firmados como medida de protección ante software malicioso.
 
+## Firmado de Módulos: Pasos
+Crear un certificado SSL:
+Usá OpenSSL y un archivo .cnf que describe los atributos del certificado. Ejemplo básico:
+```ini
+[ req ]
+distinguished_name = req_distinguished_name
+x509_extensions = v3
+prompt = no
+
+[ req_distinguished_name ]
+countryName = AR
+stateOrProvinceName = Cordoba
+localityName = Cordoba
+organizationName = UNC
+commonName = FirmaDeModulo
+
+[ v3 ]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature
+extendedKeyUsage = codeSigning
+```
+
+Generá las claves:
+
+```bash
+openssl req -config openssl.cnf -new -x509 -newkey rsa:2048 -nodes -days 36500 -outform DER \
+-keyout MOK.priv -out MOK.der
+```
+
+2. **Registrar la clave en el sistema (enroll):**
+
+```bash
+sudo mokutil --import MOK.der
+```
+
+Esto activa un proceso de confirmación al reiniciar desde el entorno UEFI.
+
+3. **Firmar el módulo compilado:**
+
+```bash
+sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 MOK.priv MOK.der mimodulo.ko
+```
+
+4. **Verificar la firma:**
+
+```bash
+modinfo mimodulo.ko
+```
+
+### Medidas adicionales de seguridad
+
+Firmar módulos es sólo una parte. Algunas estrategias extra para fortalecer la seguridad del kernel incluyen:
+
+* **Prevención de desbordamientos de búfer (buffer overflow):** mitigando vulnerabilidades comunes.
+* **Protección de memoria crítica:** evitando escrituras no autorizadas en estructuras internas del kernel.
+* **Uso de herramientas como LKRG:** para detectar modificaciones del kernel en tiempo real.
+* **Políticas de acceso:** como SELinux o AppArmor para restringir lo que pueden hacer usuarios y procesos.
+* **Randomización de memoria (ASLR):** moviendo aleatoriamente datos sensibles en la RAM para prevenir ataques.
+
+---
 ## ¿Qué funciones tiene disponible un programa y un módulo ?
 Un programa común en Linux se ejecuta en espacio de usuario (user space), donde dispone de funciones proporcionadas por bibliotecas estándar del sistema, como printf(), scanf(), malloc() o fopen(). Estas funciones permiten trabajar con archivos, memoria, procesos y entrada/salida, pero con permisos limitados y sin acceso directo al hardware.
 
@@ -74,11 +138,11 @@ Los drivers son controladores que permiten la comunicación entre el sistema ope
 
 Dentro de /dev pueden encontrarse archivos como:
 
-/dev/sda → discos duros
-/dev/tty → terminales
-/dev/null → descarta información
-/dev/random → generador de números aleatorios
-/dev/video0 → cámaras web
+## /dev/sda → discos duros
+## /dev/tty → terminales
+## /dev/null → descarta información
+## /dev/random → generador de números aleatorios
+## /dev/video0 → cámaras web
 
 Gracias a esto, Linux trata muchos dispositivos como archivos, permitiendo interactuar con ellos mediante operaciones estándar de lectura y escritura.
 
