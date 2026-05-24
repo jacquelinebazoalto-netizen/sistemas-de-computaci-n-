@@ -49,6 +49,8 @@ sudo checkinstall --pkgname=hello-world --pkgversion=1.0 --backup=no --deldoc=ye
 ```
 
 La salida de este comando es la siguiente:
+[![](./img/cap1.png)]()
+
 
 
 ## ¿Qué funciones tiene disponible un programa y un módulo ?
