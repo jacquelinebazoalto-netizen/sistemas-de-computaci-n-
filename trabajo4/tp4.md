@@ -113,7 +113,7 @@ modinfo mimodulo.ko
 
 ### Medidas adicionales de seguridad
 
-Firmar módulos es sólo una parte. Algunas estrategias extra para fortalecer la seguridad del kernel incluyen:
+ Algunas estrategias extra para fortalecer la seguridad del kernel incluyen:
 
 * **Prevención de desbordamientos de búfer (buffer overflow):** mitigando vulnerabilidades comunes.
 * **Protección de memoria crítica:** evitando escrituras no autorizadas en estructuras internas del kernel.
