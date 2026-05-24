@@ -4,9 +4,35 @@
 
 Los módulos son fragmentos de código que se pueden cargar y descargar en el kernel según se requiera. Extienden la funcionalidad del kernel sin necesidad de reiniciar el sistema. Por ejemplo, un tipo de módulo es el controlador de dispositivo, que permite que el núcleo acceda al hardware conectado al sistema. Sin módulos, tendríamos que construir kernels monolíticos y agregar nuevas funciones directamente en la imagen del kernel. Además de tener kernels más grandes, esto tiene la desventaja de requerir que reconstruyamos y reiniciemos el kernel cada vez que queramos una nueva funcionalidad.
 
+## ¿Qué es el Kernel?
+El kernel, también conocido como núcleo, es el corazón del sistema operativo. Es esa capa intermedia que se encarga de que el software pueda usar el hardware sin tener que lidiar con sus complejidades. Está presente en cualquier sistema operativo moderno, desde Windows hasta Linux, siendo este último uno de los más conocidos por ser de código abierto.El kernel es como un "organizador" que reparte los recursos del hardware (como CPU, memoria o dispositivos) entre los programas que los necesitan. Se encarga de decidir quién usa qué, cuánto y cuándo. También es el guardián que evita que un programa interfiera con otro o acceda a partes del sistema que no debería. Esto lo hace crucial para la seguridad y estabilidad general.
+
+## ¿Que son los modulos del kernel?
+Los módulos del kernel son componentes que permiten agregar funciones al núcleo del sistema operativo Linux de manera dinámica. Gracias a que el kernel de Linux es modular, se pueden cargar o eliminar módulos sin necesidad de reiniciar el sistema ni recompilar todo el núcleo. Esto facilita la adaptación del sistema al hardware disponible y mejora su flexibilidad.
+
+Entre las funciones que pueden incorporarse mediante módulos se encuentran los controladores para nuevas tarjetas gráficas, el soporte para sensores de temperatura y la compatibilidad con placas de red. Los módulos se cargan únicamente cuando son necesarios, optimizando así el uso de recursos y permitiendo que el sistema funcione de forma más eficiente.
+
 ## ¿Qué es checkinstall y para qué sirve?
 
 Cuando un programa se instala en Linux a partir de su código fuente, generalmente se utilizan comandos como ./configure, make y make install. Sin embargo, este método tiene la desventaja de que el sistema no registra automáticamente qué archivos fueron copiados ni facilita su eliminación posterior. Para solucionar este inconveniente existe CheckInstall, una herramienta que convierte la instalación manual en un paquete instalable, como .deb o .rpm según la distribución utilizada. Gracias a esto, el software puede administrarse mediante el gestor de paquetes del sistema, permitiendo realizar desinstalaciones, actualizaciones y un control más ordenado y seguro de los programas instalados.
+
+# PARA DESARROLLAR LA ACTIVIDAD
+
+Para trabajar con módulos del kernel en Linux es necesario contar con un entorno adecuado y tener instalados tanto las herramientas de compilación como el código fuente o los encabezados del kernel. El paquete build-essential proporciona utilidades esenciales como gcc y make, necesarias para compilar programas y módulos, mientras que linux-source instala los archivos requeridos para desarrollar módulos propios del kernel.
+
+El proyecto se organiza dentro de una carpeta llamada module, que contiene un archivo Makefile, encargado de automatizar el proceso de compilación, y un archivo .c con el código fuente del módulo. Para gestionar la compilación se utilizan distintos comandos: make clean elimina archivos generados en compilaciones anteriores, make all compila el módulo y crea el archivo .ko, que corresponde al módulo del kernel, y ls -lha permite visualizar información detallada de los archivos generados en la carpeta.
+
+[![](./img/cap3.png)]()
+
+Una vez compilado el módulo del kernel, se genera un archivo con extensión .ko dentro de la carpeta module. Para obtener información sobre el módulo, como el autor, la licencia y sus dependencias, se utiliza el comando modinfo. El módulo puede cargarse en el kernel mediante sudo insmod mimodulo.ko y descargarse con sudo rmmod mimodulo.ko. Además, el comando lsmod permite visualizar todos los módulos que se encuentran actualmente cargados en el sistema. Para verificar que el módulo se haya cargado o eliminado correctamente, se pueden consultar los mensajes del kernel utilizando dmesg, donde se muestran los registros generados durante estas operaciones.
+
+[![](./img/cap4.png)]()
+
+Para ver los módulos del kernel instalados:
+
+[![](./img/cap5.png)]()
+
+
 ## Crear un paquete con CheckInstall: Ejemplo con Hello World
 
 1. **Se instala CheckInstall:**
