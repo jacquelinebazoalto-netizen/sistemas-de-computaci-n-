@@ -24,6 +24,9 @@ El proyecto se organiza dentro de una carpeta llamada module, que contiene un ar
 
 [![](./img/cap3.png)]()
 
+Una vez compilado el módulo del kernel, se genera un archivo con extensión .ko dentro de la carpeta module. Para obtener información sobre el módulo, como el autor, la licencia y sus dependencias, se utiliza el comando modinfo. El módulo puede cargarse en el kernel mediante sudo insmod mimodulo.ko y descargarse con sudo rmmod mimodulo.ko. Además, el comando lsmod permite visualizar todos los módulos que se encuentran actualmente cargados en el sistema. Para verificar que el módulo se haya cargado o eliminado correctamente, se pueden consultar los mensajes del kernel utilizando dmesg, donde se muestran los registros generados durante estas operaciones.
+
+[![](./img/cap4.png)]()
 
 
 ## Crear un paquete con CheckInstall: Ejemplo con Hello World
