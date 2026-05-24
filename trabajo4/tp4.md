@@ -5,10 +5,51 @@
 Los módulos son fragmentos de código que se pueden cargar y descargar en el kernel según se requiera. Extienden la funcionalidad del kernel sin necesidad de reiniciar el sistema. Por ejemplo, un tipo de módulo es el controlador de dispositivo, que permite que el núcleo acceda al hardware conectado al sistema. Sin módulos, tendríamos que construir kernels monolíticos y agregar nuevas funciones directamente en la imagen del kernel. Además de tener kernels más grandes, esto tiene la desventaja de requerir que reconstruyamos y reiniciemos el kernel cada vez que queramos una nueva funcionalidad.
 
 ## ¿Qué es checkinstall y para qué sirve?
-¿Se animan a usarlo para empaquetar un hello world ? 
-Revisar la bibliografía para impulsar acciones que permitan mejorar la seguridad del kernel, concretamente: evitando cargar módulos que no estén firmados. rootkits ? 
 
-## Responder las siguientes preguntas y sentencias:
+Cuando un programa se instala en Linux a partir de su código fuente, generalmente se utilizan comandos como ./configure, make y make install. Sin embargo, este método tiene la desventaja de que el sistema no registra automáticamente qué archivos fueron copiados ni facilita su eliminación posterior. Para solucionar este inconveniente existe CheckInstall, una herramienta que convierte la instalación manual en un paquete instalable, como .deb o .rpm según la distribución utilizada. Gracias a esto, el software puede administrarse mediante el gestor de paquetes del sistema, permitiendo realizar desinstalaciones, actualizaciones y un control más ordenado y seguro de los programas instalados.
+## Crear un paquete con CheckInstall: Ejemplo con Hello World
+
+1. **Se instala CheckInstall:**
+
+```bash
+sudo apt-get update
+sudo apt-get install checkinstall
+```
+
+2. **Se escribe el código fuente:**
+   Archivo `hello.c`:
+
+```c
+#include <stdio.h>
+int main() {
+    printf("HELLO WORLD!\n");
+    return 0;
+}
+```
+
+3. **Se compila el código fuente:**
+
+```bash
+gcc -o hello hello.c
+```
+
+4. **Se crea un script de instalación:**
+   Archivo `install.sh`:
+
+```bash
+#!/bin/bash
+cp hello /usr/local/bin/
+```
+
+5. **Se hace ejecutable el script e instalá con CheckInstall:**
+
+```bash
+chmod +x install.sh
+sudo checkinstall --pkgname=hello-world --pkgversion=1.0 --backup=no --deldoc=yes --default ./install.sh
+```
+
+La salida de este comando es la siguiente:
+
 
 ## ¿Qué funciones tiene disponible un programa y un módulo ?
 Espacio de usuario o espacio del kernel.
