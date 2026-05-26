@@ -75,7 +75,7 @@ sudo checkinstall --pkgname=hello-world --pkgversion=1.0 --backup=no --deldoc=ye
 ```
 
 La salida de este comando es la siguiente:
-[![](./img/cap1.png)]()
+[![](./img/im1.png)]()
 
 Esto generará un archivo `.deb` que se instalará en tu sistema y que luego podés remover con:
 
