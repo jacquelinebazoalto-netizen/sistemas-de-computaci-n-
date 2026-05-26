@@ -22,7 +22,7 @@ Para trabajar con módulos del kernel en Linux es necesario contar con un entorn
 
 El proyecto se organiza dentro de una carpeta llamada module, que contiene un archivo Makefile, encargado de automatizar el proceso de compilación, y un archivo .c con el código fuente del módulo. Para gestionar la compilación se utilizan distintos comandos: make clean elimina archivos generados en compilaciones anteriores, make all compila el módulo y crea el archivo .ko, que corresponde al módulo del kernel, y ls -lha permite visualizar información detallada de los archivos generados en la carpeta.
 
-[![](./img/cap3.png)]()
+[![](./img/img2.png)]()
 
 Una vez compilado el módulo del kernel, se genera un archivo con extensión .ko dentro de la carpeta module. Para obtener información sobre el módulo, como el autor, la licencia y sus dependencias, se utiliza el comando modinfo. El módulo puede cargarse en el kernel mediante sudo insmod mimodulo.ko y descargarse con sudo rmmod mimodulo.ko. Además, el comando lsmod permite visualizar todos los módulos que se encuentran actualmente cargados en el sistema. Para verificar que el módulo se haya cargado o eliminado correctamente, se pueden consultar los mensajes del kernel utilizando dmesg, donde se muestran los registros generados durante estas operaciones.
 
@@ -75,7 +75,7 @@ sudo checkinstall --pkgname=hello-world --pkgversion=1.0 --backup=no --deldoc=ye
 ```
 
 La salida de este comando es la siguiente:
-[![](./img/cap1.png)]()
+[![](./img/im1.png)]()
 
 Esto generará un archivo `.deb` que se instalará en tu sistema y que luego podés remover con:
 
