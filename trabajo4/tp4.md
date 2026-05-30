@@ -262,6 +262,83 @@ El `vermagic` indica compatibilidad con la versión actual del kernel.
 
 Podemos ver los lsmod de cada integrante en:
 - [lsmod-benja](/trabajo4/lsmod_benja.txt)
+- [lsmod-jacky](/trabajo4/Ismod_jacky.txt)
+- [lsmod-luis](/trabajo4/lsmod_luis.txt)
+
+
+### Cantidad de módulos cargados
+
+| Integrante | Módulos cargados |
+|---|---|
+| Benja | 120 |
+| Jacky | 157 |
+| Luis | 85 |
+
+---
+
+### Módulos en común entre los tres (23 módulos)
+
+Estos son los módulos que los tres sistemas tienen cargados independientemente del hardware:
+
+```
+wmi, video, ttm, soundcore, snd_timer, snd_seq_dummy, snd_seq_device,
+snd_seq, snd_rawmidi, snd_pcm, snd_hrtimer, snd, rapl, qrtr, nfnetlink,
+joydev, intel_rapl_msr, intel_rapl_common, i2c_smbus, i2c_piix4,
+ghash_clmulni_intel, drm_ttm_helper, binfmt_misc
+```
+
+Son módulos del subsistema de audio base (`snd`, `snd_pcm`, `snd_seq`), gestión de energía (`rapl`, `intel_rapl_msr`), buses I2C (`i2c_piix4`, `i2c_smbus`), criptografía (`ghash_clmulni_intel`), y utilidades genéricas del kernel (`binfmt_misc`, `wmi`). Aparecen en todos porque son independientes del hardware específico.
+
+---
+
+### Módulos exclusivos de cada integrante y por qué
+
+**Solo en Benja:**
+
+Los más relevantes agrupados por función:
+
+- `rtl8188ee`, `rtl_pci`, `rtlwifi` → driver de la placa WiFi **Realtek RTL8188EE**
+- `snd_usb_audio`, `snd_usbmidi_lib`, `snd_ump` → audio por **USB** (interfaz de audio externa)
+- `nouveau`, `i2c_nvidia_gpu` → driver open source de la **GPU Nvidia** (comparte esto con Jacky)
+- `nf_tables`, `nft_ct`, `nft_chain_nat`, `nf_conntrack`, `nf_nat` → subsistema **netfilter/nftables** (firewall activo)
+- `thunderbolt` → soporte para puertos **Thunderbolt**
+- `zram`, `lz4_compress`, `lz4hc_compress` → **memoria comprimida en RAM** (swap en RAM con compresión LZ4)
+- `usb_storage`, `uas` → acceso a dispositivos de almacenamiento **USB**
+- `overlay`, `loop`, `squashfs` → sistemas de archivos para **contenedores** (Docker/Podman) y montajes de imágenes ISO
+- `mimodulo` → el módulo del TP que estamos desarrollando
+
+**Solo en Jacky:**
+
+- `mt7921e`, `mt7921_common`, `mt792x_lib`, `mt76`, `mt76_connac_lib` → driver WiFi **MediaTek MT7921** (distinto chipset al de Benja)
+- `bluetooth`, `btusb`, `btintel`, `btrtl`, `btbcm`, `btmtk`, `rfcomm`, `bnep` → stack **Bluetooth** completo con soporte para múltiples chipsets
+- `snd_sof_*`, `snd_soc_*`, `soundwire_*`, `snd_acp*` → subsistema de audio **AMD SOF** (Sound Open Firmware), propio de hardware AMD moderno
+- `ideapad_laptop`, `lenovo_wmi_hotkey_utilities` → drivers específicos para **laptops Lenovo IdeaPad**
+- `nvidia_wmi_ec_backlight` → control de **brillo de pantalla** vía Nvidia WMI
+- `spd5118` → módulo para leer información de módulos **RAM DDR5** (SPD)
+- `ccp` → **Cryptographic Co-Processor** de AMD, usado por `kvm_amd`
+- `hid_multitouch` → soporte para **touchpad/pantalla táctil** multitouch
+- `ucsi_acpi`, `xhci_pci` → gestión de puertos **USB-C/UCSI** y controlador USB 3.x
+
+**Solo en Luis:**
+
+- `vmwgfx` → driver gráfico de **VMware**, confirma que es una máquina virtual
+- `vboxguest` → driver de **VirtualBox Guest Additions**, confirma virtualización
+- `snd_intel8x0`, `snd_ac97_codec`, `ac97_bus` → audio **AC97 virtualizado**, el estándar de audio que emulan las VMs
+- `e1000` → driver de red **Intel E1000**, la tarjeta de red que emula VirtualBox/VMware por defecto
+- `btrfs`, `raid0`, `raid1`, `raid10`, `raid456`, `raid6_pq` → soporte para sistema de archivos **Btrfs** y múltiples niveles de **RAID por software**
+- `psmouse` → driver para **mouse PS/2** (emulado por la VM)
+- `vga16fb`, `vgastate` → framebuffer **VGA básico** (gráficos virtualizados sin aceleración)
+- `intel_pmc_core`, `pmt_telemetry`, `pmt_class`, `intel_vsec` → módulos de **telemetría y gestión de energía Intel** (el host físico de Luis tiene CPU Intel, a diferencia de Benja y Jacky que tienen AMD)
+- `ahci`, `libahci`, `pata_acpi` → controladores **SATA/AHCI** (storage emulado en VM)
+- `async_*`, `dm_mirror`, `dm_region_hash` → infraestructura de **device mapper** para RAID y mirrors
+
+---
+
+### Conclusión
+
+Las diferencias entre los tres sistemas reflejan directamente el hardware físico y el entorno de ejecución de cada uno. Benja y Jacky tienen PCs físicas con hardware AMD/Nvidia pero distintos chipsets de WiFi y audio. Luis corre en una máquina virtual, lo que explica la ausencia de drivers de hardware real y la presencia de módulos de virtualización como `vmwgfx` y `vboxguest`. La cantidad mayor de módulos en Jacky se debe principalmente al stack de Bluetooth completo y al subsistema de audio AMD SOF que requiere muchos más módulos que el audio USB de Benja o el AC97 virtualizado de Luis.
+
+
 
 ## 3. ¿Cuales no están cargados pero están disponibles? Que pasa cuando el driver de un dispositivo no está disponible. 
 
