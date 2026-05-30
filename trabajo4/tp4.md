@@ -1,4 +1,4 @@
-## Trabajo Practico N4
+## Trabajo Practico N° 4
 ## Introducción
 ## ¿Qué es exactamente un módulo del núcleo? 
 
@@ -437,9 +437,93 @@ Herramientas útiles para detectar estos errores:
 
 ## 8. ¿Se animan a intentar firmar un módulo de kernel ? y documentar el proceso ?  
 
+Empecemos verificando:
+- Se secure boot está habilitado
+- La versión del kernel
+- Que los headers del kernel están instalados
+
+![requisitos-para-firmar-kernel](/trabajo4/img/requisitos-firmar-kernel.png)
+
+Secure Boot está deshabilitado, por lo que se puede completar todo el proceso de firma (generar claves, firmar el módulo, verificar), simplemente que el kernel no va a rechazar el módulo si no está firmado, pero la firma queda registrada en el .ko y eso es lo que importa para documentar.
+
+
+Crear directorio y generar claves:
+
+![creacion-de-directorio-y-generacion-de-claves](/trabajo4/img/creacion-de-claves.png)
+
+Verificamos que se crearon los archivos:
+
+![archivos-con-las-claves](/trabajo4/img/generacion-de-archivos.png)
+
+Firmamos el módulo y verificacmos la firma:
+
+![firma-de-modulo-y-verficacion-de-la-firma](/trabajo4/img/firma-modulo-y-verificacion-de-firma.png)
+
+Analizando cada línea de la salida:
+
+- `sig_id: PKCS#7` — el formato de la firma es PKCS#7, que es el estándar que usa el kernel de Linux para firmas de módulos.
+- `signer: Kernel Module Signing Key` — es el CN que se puso al generar el certificado con openssl.
+- `sig_key: 06:E9:...` — el fingerprint (huella) de la clave pública, identifica unívocamente el par de claves.
+- `sig_hashalgo: sha256` — el algoritmo de hash que se usó al firmar.
+- `signature: 96:D8:...` — los bytes de la firma digital en sí.
+- `~Module signature appended~` — marca al final del binario que confirma que la firma fue embebida correctamente en el .ko.
+
+
+Cargamos el módulo y observamos `dmseg`:
+
+![carga-modulo-y-dmseg](/trabajo4/img/carga-modulo-y-dmseg.png)
+
+Aparecen dos warnings:
+
+`loading out-of-tree module taints kernel` — el módulo no forma parte del árbol oficial del kernel (no vino con la distribución, fue compilado externamente). Cualquier módulo externo genera este warning independientemente de si está firmado o no.
+
+`module verification failed`: signature and/or required key missing — el kernel intentó verificar la firma del módulo pero no encontró la clave pública correspondiente en su keyring. El módulo tiene la firma embebida correctamente, pero el kernel no conoce la clave pública con la que fue firmado porque no fue `enrollada`.
+
+**Conclusión**:
+
+Se logró firmar exitosamente un módulo de kernel usando la herramienta sign-file provista por los headers del kernel, junto con un par de claves RSA generadas con OpenSSL. La firma quedó correctamente embebida en el archivo .ko, verificable tanto con modinfo como con tail.
+Sin embargo, al cargar el módulo el kernel siguió reportando module verification failed. Esto ocurre porque la firma de un módulo y la confianza en esa firma son dos cosas distintas: el kernel puede ver que el módulo está firmado, pero no puede validar esa firma si no conoce la clave pública que la generó. Para que el kernel confíe en la clave, esta debe estar enrollada en su keyring, lo cual se hace a través del MOK Manager del firmware UEFI mediante mokutil --import seguido de un reinicio.
+En este caso ese paso no fue realizado porque Secure Boot está deshabilitado, por lo que el kernel no rechaza el módulo sino que simplemente lo carga marcándolo como tainted. Si Secure Boot estuviera habilitado con verificación forzada, el módulo habría sido rechazado directamente hasta completar el enrollado de la clave.
+
+
 ## 9. Agregar evidencia de la compilación, carga y descarga de su propio módulo imprimiendo el nombre del equipo en los registros del kernel. 
 
+Se creó un módulo personalizado `mimodulo_custom.c` que imprime el nombre del equipo en los registros del kernel tanto al cargarse como al descargarse.
+
+Código fuente:
+
+![codigo-fuente](/trabajo4/img/codigo-fuente.png)
+
+Carga y descarga, y salida de dmesg:
+
+![carga-y-descarga-de-modulo-con-nombre-del-grupo](/trabajo4/img/carga-y-descarga-modulo-con-nombre-grupo.png)
+
+El módulo fue compilado, cargado y descargado exitosamente. Los mensajes aparecen correctamente en el log del kernel mediante `printk` con nivel `KERN_INFO`, verificables con `dmesg`. 
+
+
 ## 10. ¿Que pasa si mi compañero con secure boot habilitado intenta cargar un módulo firmado por mi? 
+
+Si un compañero con Secure Boot habilitado intenta cargar un módulo firmado por otro integrante del grupo, el kernel lo rechazará con el siguiente error:
+```
+module verification failed: signature and/or required key missing
+```
+
+Esto ocurre porque la firma del módulo fue generada con una clave privada (`MOK.priv`) cuya clave pública correspondiente (`MOK.pem/MOK.der`) nunca fue enrollada en el firmware UEFI del equipo del compañero. El kernel con Secure Boot habilitado no acepta módulos cuya firma no pueda verificar con una clave de confianza presente en su keyring.
+A diferencia del caso con Secure Boot deshabilitado, donde el kernel carga el módulo igualmente marcándolo como tainted, con Secure Boot habilitado y `MODULE_SIG_FORCE=y` la carga es **directamente rechazada**.
+
+Para que el compañero pudiera cargar el módulo firmado por otro integrante, debería:
+
+1. Recibir el archivo `MOK.der` del integrante que firmó el módulo
+2. Ejecutar en su equipo:
+
+```
+sudo mokutil --import MOK.der
+```
+
+3. Reiniciar y completar el enrollado en el MOK Manager del firmware UEFI
+4. Recién entonces su kernel reconocería la clave como confiable y aceptaría el módulo
+
+Esto demuestra que la firma de módulos está ligada a la confianza establecida en cada equipo individualmente a través del MOK del firmware, no es una firma universalmente válida.
 
 ## 11. Dada la siguiente nota https://arstechnica.com/security/2024/08/a-patch-microsoft-spent-2-years-preparing-is-making-a-mess-for-some-linux-users/ 
 ### ¿Cuál fue la consecuencia principal del parche de Microsoft sobre GRUB en sistemas con arranque dual (Linux y Windows)?
